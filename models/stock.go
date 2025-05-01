@@ -27,20 +27,29 @@ type Stock struct {
 func (s *Stock) Validate() error {
 	// This tagless switch will evaluate all the following conditions
 	switch {
+	case s.Symbol == "":
+		return errors.New("symbol is required")
+
 	case s.CompanyID <= 0:
 		return errors.New("company_id must be a positive integer")
+
+	case s.Date.IsZero():
+		return errors.New("date cannot be empty")
 
 	case s.OpenPrice < 0 || s.HighPrice < 0 || s.LowPrice < 0 || s.ClosePrice < 0 || s.AdjustedClosePrice < 0:
 		return errors.New("price values cannot be negative")
 
-	case s.HighPrice < s.LowPrice:
+	case s.HighPrice < s.LowPrice && s.HighPrice > 0 && s.LowPrice > 0:
 		return errors.New("high price cannot be less than low price")
 
 	case s.Volume < 0:
 		return errors.New("volume cannot be negative")
 
-	case s.Date.IsZero():
-		return errors.New("date cannot be empty")
+	case s.SplitCoefficient < 0:
+		return errors.New("split coefficient cannot be negative")
+
+	case s.DividendAmount < 0:
+		return errors.New("dividend amount cannot be negative")
 	}
 
 	// No errors found

@@ -8,14 +8,14 @@ GoSimpleREST uses MVC (Model-View-Controller) architecture.
 
 ### Project Structure
 
-- README.md ------------- Project Documentation
+- README.md
 - api/
-  - app.go -------------- Application Setup
-  - handlers.go --------- Request Handlers (CONTROLLER)
-  - responses.go -------- Response Utilities (VIEW)
-- go.mod ---------------- Go Module file
-- main.go --------------- Entry Point
+  - app.go
+  - handlers.go
+  - responses.go
+- go.mod
+- main.go
 - models/
-  - item.go ------------- Data Model (MODEL)
+  - item.go
 - store/
-  - memstore.go --------- In-memory data store
+  - memstore.go

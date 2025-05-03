@@ -21,17 +21,9 @@ type Company struct {
 func (c *Company) Validate() error {
 	switch {
 	case c.Symbol == "":
-		return errors.NewModelValidationError(
-			"Company",
-			"Symbol",
-			"Symbol is required",
-		)
+		return errors.NewModelValidationError("Company", "symbol", "symbol is required")
 	case c.Name == "":
-		return errors.NewModelValidationError(
-			"Company",
-			"Name",
-			"Name is required.",
-		)
+		return errors.NewModelValidationError("Company", "name", "name is required.")
 	}
 	return nil
 }

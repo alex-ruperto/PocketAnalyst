@@ -7,7 +7,7 @@ import (
 
 // Stock represents historical stock price data in the database.
 type Stock struct {
-	StockDataID        int       `json:"stock_data_id"`
+	PriceID            int       `json:"price_id"` // SERIAL, auto-incrementing PK.
 	CompanyID          int       `json:"company_id"`
 	Symbol             string    `json:"symbol"`
 	Date               time.Time `json:"date"`

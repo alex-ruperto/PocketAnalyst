@@ -36,5 +36,10 @@ func (sr *StockRepository) StoreStockPrices(ctx context.Context, stocks []*model
 
 		// Check if company exists
 		var companyID int
+		err := tx.QueryRowContext(
+			ctx,
+			`SELECT company_id FROM companies WHERE symbol = $1`,
+			stock.Symbol,
+		).Scan(&companyID)
 	}
 }

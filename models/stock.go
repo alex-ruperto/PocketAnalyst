@@ -20,7 +20,7 @@ type Stock struct {
 	DividendAmount   float64   `json:"dividend_amount"`
 	SplitCoefficient float64   `json:"split_coefficient"`
 	DataSource       string    `json:"data_source"`
-	CreatedAt        time.Time `json:"created_at"`
+	LastUpdated      time.Time `json:"last_updated"`
 }
 
 // Validate checks if the stock data meets all logical rules

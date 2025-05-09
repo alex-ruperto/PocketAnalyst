@@ -2,6 +2,7 @@ package models
 
 import (
 	"GoSimpleREST/errors"
+	"fmt"
 	"time"
 )
 
@@ -21,6 +22,20 @@ type Stock struct {
 	SplitCoefficient float64   `json:"split_coefficient"`
 	DataSource       string    `json:"data_source"`
 	LastUpdated      time.Time `json:"last_updated"`
+}
+
+// String implements the Stringer interface for Stock
+func (s *Stock) String() string {
+	return fmt.Sprintf(
+		"Stock{Symbol: %s, Date: %s, Open: %.2f, High: %.2f, Low: %.2f, Close: %.2f, Volume: %.0f}",
+		s.Symbol,
+		s.Date.Format("2006-01-02"),
+		s.OpenPrice,
+		s.HighPrice,
+		s.LowPrice,
+		s.ClosePrice,
+		s.Volume,
+	)
 }
 
 // Validate checks if the stock data meets all logical rules

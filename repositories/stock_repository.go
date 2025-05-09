@@ -188,7 +188,7 @@ func (sr *StockRepository) GetStockPrices(
 	var stocks []*models.Stock
 	for rows.Next() {
 		var s models.Stock
-		var createdAt time.Time
+		var lastUpdated time.Time
 
 		// Scan row data into struct fields
 		// The order here has to match that of the SELECT statement.
@@ -206,15 +206,15 @@ func (sr *StockRepository) GetStockPrices(
 			&s.DividendAmount,
 			&s.SplitCoefficient,
 			&s.DataSource,
-			&createdAt,
+			&lastUpdated,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan stock price row: %w", err)
 		}
 
-		s.CreatedAt = createdAt
+		s.LastUpdated = lastUpdated
 
-		// Return the stocks as a slice
+		// Return the stocks as a
 		stocks = append(stocks, &s)
 	}
 

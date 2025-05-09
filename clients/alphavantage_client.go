@@ -27,13 +27,13 @@ func NewAlphaVantageClient(baseURL, apiKey string) *AlphaVantageClient {
 	}
 }
 
-// Fetch daily adjusted stock prices from Alpha Vantage
+// Fetch daily stock prices from Alpha Vantage
 // Alpha Vantage API documentation https://www.alphavantage.co/documentation/
-func (avc *AlphaVantageClient) FetchDailyAdjusted(symbol string) ([]*models.Stock, error) {
+func (avc *AlphaVantageClient) FetchDaily(symbol string) ([]*models.Stock, error) {
 	// Construct URL with required parameters
 	// TIME_SERIES_DAILY_ADJUSTED returns daily adjusted time series
 	// outputsize=compact returns the latest 100 data points
-	url := fmt.Sprintf("%s?function=TIME_SERIES_DAILY_ADJUSTED&symbol=%s&outputsize=compact&apikey=%s",
+	url := fmt.Sprintf("%s?function=TIME_SERIES_DAILY&symbol=%s&outputsize=compact&apikey=%s",
 		avc.BaseURL, symbol, avc.APIKey)
 
 	// Make HTTP request.
@@ -115,8 +115,11 @@ func (avc *AlphaVantageClient) FetchDailyAdjusted(symbol string) ([]*models.Stoc
 			DataSource:       "AlphaVantage",
 			LastUpdated:      time.Now(),
 		}
-	}
 
+		stocks = append(stocks, stock)
+		count++
+	}
+	return stocks, nil
 }
 
 func parseFloat(data map[string]any, key string) float64 {

@@ -1,16 +1,22 @@
 FROM golang:1.24-alpine
 
+# Install additional tools
+RUN apk add --no-cache bash git curl
+
+# Set working directory
 WORKDIR /app
 
-# Copy go.mod and go.sum (if you have one)
+# Copy go.mod and go.sum if you have one
+# COPY go. sum* ./
 COPY go.mod ./
-# COPY go.sum ./
 
-# Download dependencies
 RUN go mod download
 
-# Copy the source code
-COPY . .
+# Create a directory for reports
+RUN mkdir -p /app/test-reports
 
-# Set the entry point to run the test
-ENTRYPOINT ["go", "test", "-v", "./clients"] 
+# Copy test script
+COPY scripts/run-tests.sh ./scripts/
+RUN chmod +x ./scripts/run-tests.sh
+
+# Code gets mounted as a volume. No need to copy it here.

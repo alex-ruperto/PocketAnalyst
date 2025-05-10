@@ -1,8 +1,14 @@
 services:
-  alpha-vantage-tester:
+  go-tests:
     build:
       context: .
       dockerfile: Dockerfile.test
     environment:
-      - ALPHA_VANTAGE_API_KEY=${ALPHA_VANTAGE_API_KEY}
-      - RUN_INTEGRATION_TESTS=true
+      - ALPHA_VANTAGE_API_KEY=${ALPHA_VANTAGE_API_KEY} # Passed from host environment.
+      - RUN_INTEGRATION_TESTS=${RUN_INTEGRATION_TESTS:-false} # Defaults to false if not provided.
+      - TEST_DIRS=${TEST_DIRS:-./...} # Defaults to all directories if not provided.
+      - COVERAGE=${COVERAGE:-true} # Defaults to true if not provided.
+    volumes:
+      - ./:/app # Mount the current directory to /app in the container. Changes in source code and scripts do not need rebuild.
+      - ./test-reports:/app/test-reports  # Makes reports accessible to host machine.
+    command: sh -c "./scripts/run-tests.sh"

@@ -1,0 +1,16 @@
+FROM golang:1.24-alpine
+
+WORKDIR /app
+
+# Copy go.mod and go.sum (if you have one)
+COPY go.mod ./
+# COPY go.sum ./
+
+# Download dependencies
+RUN go mod download
+
+# Copy the source code
+COPY . .
+
+# Set the entry point to run the test
+ENTRYPOINT ["go", "test", "-v", "./clients"] 

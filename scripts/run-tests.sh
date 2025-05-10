@@ -22,10 +22,10 @@ for dir in "${DIRS[@]}"; do
 	echo "Running tests for: $dir"
 	echo "==============================================="
 
-	if [ "$COVERAGE" = "true"]; then
+	if [ "$COVERAGE" = "true" ]; then
 		# Create a unique name for the coverage profile based on the directory name.
 		PROFILE_NAME=$(basename $dir | sed 's/\.\///g')
-		if [ "$PROFILE_NAME" = "..."]; then
+		if [ "$PROFILE_NAME" = "..." ]; then
 			PROFILE_NAME="all"
 		fi
 

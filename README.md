@@ -229,8 +229,8 @@ Tracks execution of system jobs for monitoring and debugging.
 - Run export ALPHA_VANTAGE_API_KEY=<yourapikey>
 - Run chmod +x scripts/run-tests.sh in terminal
 - Use one of the following make commands
-    make test-all
-    make test-clients
-    make test-repositories
-    make test-core
-    make test-clean
+    - make test-all
+    - make test-clients
+    - make test-repositories
+    - make test-core
+    - make test-clean

@@ -30,9 +30,9 @@ test:
 	fi
 
 	@echo "Running tests for: $(TEST_DIRS)"
-	# Run the Docker container for testing
+
 	docker-compose -f docker-compose.yml up --build
-	# Show where to find the coverage reports
+	
 	@echo "Coverage reports available in ./test-reports/"
 
 # Clean up test artifacts and Docker resources

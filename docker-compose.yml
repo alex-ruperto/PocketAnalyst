@@ -1,0 +1,8 @@
+services:
+  alpha-vantage-tester:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      - ALPHA_VANTAGE_API_KEY=${ALPHA_VANTAGE_API_KEY}
+      - RUN_INTEGRATION_TESTS=true

@@ -223,3 +223,14 @@ Tracks execution of system jobs for monitoring and debugging.
 - error_message: Error message if job failed
 - details: Additional job details
 - created_at: Timestamp when the record was created
+
+## Testing
+- Get an Alpha Vantage API Key from https://www.alphavantage.co/
+- Run export ALPHA_VANTAGE_API_KEY=<yourapikey>
+- Run chmod +x scripts/run-tests.sh in terminal
+- Use one of the following make commands
+    make test-all
+    make test-clients
+    make test-repositories
+    make test-core
+    make test-clean

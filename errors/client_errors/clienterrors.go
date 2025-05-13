@@ -60,9 +60,8 @@ func (e *HTTPStatusError) ErrorCode() string {
 }
 
 // Returns a new HTTPStatusError
-
-// HTTPStatusError: Occurs when the returned status code is not 200.
 //
+//	HTTPStatusError: Occurs when the returned status code is not 200.
 //	url: The request URL
 //	statusCode: The status code returned from the HTTP request
 //	responseBody: The response body from the request

@@ -225,8 +225,9 @@ Tracks execution of system jobs for monitoring and debugging.
 - created_at: Timestamp when the record was created
 
 ## Testing
-- Get an Alpha Vantage API Key from https://www.alphavantage.co/
-- Run export ALPHA_VANTAGE_API_KEY=<yourapikey>
+
+- Get an Alpha Vantage API Key from [here](https://www.alphavantage.co/)
+- Run export ALPHA_VANTAGE_API_KEY=yourapikey
 - Run chmod +x scripts/run-tests.sh in terminal
 - Use one of the following make commands
     - make test-all

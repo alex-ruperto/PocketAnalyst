@@ -4,6 +4,19 @@
 # .PHONY tells Make these don't represent files.
 .PHONY: test test-all test-clients test-repositories test-clean
 
+# Main test target - configurable via TEST_DIRS variable
+test:
+	@if [ -z "$(ALPHA_VANTAGE_API_KEY)" ] && [ -n "$$(echo $(TEST_DIRS) | grep clients)" ]; then \
+		echo "Warning: ALPHA_VANTAGE_API_KEY environment variable not set"; \
+		echo "Integration tests will be skipped"; \
+	fi
+
+	@echo "Running tests for: $(TEST_DIRS)"
+
+	docker-compose -f docker-compose.yml up --build
+	
+	@echo "Coverage reports available in ./test-reports/"
+
 # Test all packages
 test-all:
 	# Set TEST_DIRS to all packages and call the main test target
@@ -22,18 +35,6 @@ test-core:
 	# Comma-separated list for multiple directories
 	TEST_DIRS="./clients,./repositories" $(MAKE) test
 
-# Main test target - configurable via TEST_DIRS variable
-test:
-	@if [ -z "$(ALPHA_VANTAGE_API_KEY)" ] && [ -n "$$(echo $(TEST_DIRS) | grep clients)" ]; then \
-		echo "Warning: ALPHA_VANTAGE_API_KEY environment variable not set"; \
-		echo "Integration tests will be skipped"; \
-	fi
-
-	@echo "Running tests for: $(TEST_DIRS)"
-
-	docker-compose -f docker-compose.yml up --build
-	
-	@echo "Coverage reports available in ./test-reports/"
 
 # Clean up test artifacts and Docker resources
 test-clean:

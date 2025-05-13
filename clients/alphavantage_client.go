@@ -1,6 +1,7 @@
 package clients
 
 import (
+	"GoSimpleREST/errors/client_errors"
 	"GoSimpleREST/models"
 	"encoding/json"
 	"fmt"

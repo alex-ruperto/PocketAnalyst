@@ -1,4 +1,4 @@
-GoSimpleREST/clients/alphavantage_client.go:20:		NewAlphaVantageClient	100.0%
-GoSimpleREST/clients/alphavantage_client.go:32:		FetchDaily		78.9%
-GoSimpleREST/clients/alphavantage_client.go:125:	parseFloat		100.0%
-total:							(statements)		81.4%
+GoSimpleREST/clients/alphavantage_client.go:21:		NewAlphaVantageClient	100.0%
+GoSimpleREST/clients/alphavantage_client.go:33:		FetchDaily		79.5%
+GoSimpleREST/clients/alphavantage_client.go:127:	parseFloat		100.0%
+total:							(statements)		81.8%

@@ -55,7 +55,7 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">GoSimpleREST/clients/alphavantage_client.go (81.4%)</option>
+				<option value="file0">GoSimpleREST/clients/alphavantage_client.go (81.8%)</option>
 				
 				</select>
 			</div>
@@ -72,6 +72,7 @@
 		<pre class="file" id="file0" style="display: none">package clients
 
 import (
+        "GoSimpleREST/errors/client_errors"
         "GoSimpleREST/models"
         "encoding/json"
         "fmt"
@@ -107,34 +108,35 @@ func (avc *AlphaVantageClient) FetchDaily(symbol string) ([]*models.Stock, error
         url := fmt.Sprintf("%s?function=TIME_SERIES_DAILY&amp;symbol=%s&amp;outputsize=compact&amp;apikey=%s",
                 avc.BaseURL, symbol, avc.APIKey)
 
-        // Make HTTP request.
+        // Make HTTP request. Return a HTTPRequestError if it fails.
         resp, err := avc.Client.Get(url)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, fmt.Errorf("failed to make a request to Alpha Vantage %w", err)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, client_errors.NewHTTPRequestError(url, err)
         }</span>
         <span class="cov8" title="1">defer resp.Body.Close() // Ensure the response body is closed to prevent resource leaks.
 
-        // Check for successful HTTP response
+        // Check for successful HTTP response. Return a HTTPStatusError if it is not a successful response.
         if resp.StatusCode != http.StatusOK </span><span class="cov0" title="0">{
-                return nil, fmt.Errorf("Alpha Vantage API returned status code %d", resp.StatusCode)
+                body, _ := io.ReadAll(resp.Body)
+                return nil, client_errors.NewHTTPStatusError(url, resp.StatusCode, string(body))
         }</span>
 
         // Read response body
         <span class="cov8" title="1">body, err := io.ReadAll(resp.Body)
         if err != nil </span><span class="cov0" title="0">{
-                return nil, fmt.Errorf("Failed to read Alpha Vantage response: %w", err)
+                return nil, client_errors.NewResponseReadError(err)
         }</span>
 
         // Parse the JSON response
         <span class="cov8" title="1">var response map[string]any
         // Unmarshal only needs to read body. We need to modify the original response so we pass response by reference here.
         if err := json.Unmarshal(body, &amp;response); err != nil </span><span class="cov0" title="0">{
-                return nil, fmt.Errorf("failed to parse Alpha Vantage response: %w", err)
+                return nil, client_errors.NewResponseParseError(err)
         }</span>
 
         // Check for API error messages
         <span class="cov8" title="1">if errorMsg, exists := response["Error Message"]; exists </span><span class="cov0" title="0">{
-                return nil, fmt.Errorf("Alpha Vantage API error: %v", errorMsg)
+                return nil, client_errors.NewAPIError(errorMsg.(string))
         }</span>
 
         // Extract the time series data

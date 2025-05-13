@@ -36,7 +36,7 @@ for dir in "${DIRS[@]}"; do
 		# -coverprofile: Save coverage data to html file for later.
 		if ! go test -v -cover -coverprofile=/app/test-reports/coverage-$PROFILE_NAME.out $dir; then 
 			# If tests fail, set exit code to 1 but continue running other tests
-			EXIT_CODE = 1
+			EXIT_CODE=1
 		fi
 
 		# Generate HTML coverage report from the coverage data
@@ -49,7 +49,7 @@ for dir in "${DIRS[@]}"; do
 	else 
 		# When coverage is disabled, run tests without coverage for faster execution
 		if ! go test -v $dir; then
-			EXIT_CODE 1
+			EXIT_CODE=1
 		fi
 	fi
 done

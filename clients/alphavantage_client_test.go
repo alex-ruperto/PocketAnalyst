@@ -1,6 +1,7 @@
 package clients
 
 import (
+	"http"
 	"os"
 	"testing"
 )
@@ -37,4 +38,28 @@ func TestAlphaVantageClient_FetchDaily(t *testing.T) {
 		}
 		t.Logf("Stock #%d: %+v", i+1, stock)
 	}
+
+}
+
+func TestAlphaVantageClient_FetchDaily_Errors(t *testing.T) {
+	tests := []struct {
+		name           string
+		serverResponse func(w http.Response, r *http.Request)
+		expectedError  string
+	}{
+		{
+			name:           "HTTP Request Failure",
+			serverResponse: nil,
+			expectedError:  "failed to make a request to Alpha Vantage",
+		},
+		{
+			name:		"Non-200 Status Code",
+			serverResponse: func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusUnauthorized) // 401
+				w.Write([]byte(`{"error: "Invalid API Key}`))
+			},
+			expectedError:	"Alpha Vantage API returned status code 401",
+		}
+	}
+
 }

@@ -37,16 +37,17 @@ func (avc *AlphaVantageClient) FetchDaily(symbol string) ([]*models.Stock, error
 	url := fmt.Sprintf("%s?function=TIME_SERIES_DAILY&symbol=%s&outputsize=compact&apikey=%s",
 		avc.BaseURL, symbol, avc.APIKey)
 
-	// Make HTTP request.
+	// Make HTTP request. Return a HTTPRequestError if it fails.
 	resp, err := avc.Client.Get(url)
 	if err != nil {
-		return nil, fmt.Errorf("failed to make a request to Alpha Vantage %w", err)
+		return nil, client_errors.NewHTTPRequestError(url, err)
 	}
 	defer resp.Body.Close() // Ensure the response body is closed to prevent resource leaks.
 
-	// Check for successful HTTP response
+	// Check for successful HTTP response. Return a HTTPStatusError if it is not a successful response.
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Alpha Vantage API returned status code %d", resp.StatusCode)
+		body, _ := io.ReadAll(resp.Body)
+		return nil, client_errors.NewHTTPStatusError(url, resp.StatusCode, string(body))
 	}
 
 	// Read response body

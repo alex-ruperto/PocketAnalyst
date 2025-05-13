@@ -1,12 +1,6 @@
-// Package client handles client-related errors
+// Package client_erorrs handles client-related errors
 //
 //	ClientError: Common interface for all API client errors.
-//	HTTPRequestError: Occurs when a request to an external API Fails.
-//	HTTPStatusError: Occurs when the returned status code is not 200.
-//	ResponseReadError: Occurs when there is an error from READING the response.
-//	ResponseParseError: Occurs when there is an error PARSING the response.
-//	APIError: Occurs when there is an explicit API error.
-//	DataNotFoundError: Occurs when the expected data is not found from the API.
 package client_errors
 
 import (
@@ -38,6 +32,11 @@ func (e *HTTPRequestError) Unwrap() error {
 	return e.InnerError
 }
 
+// Returns a new HTTPRequestError.
+//
+//	HTTPRequestError: Occurs when a request to an external API Fails.
+//	url: The request URL
+//	err: The inner error
 func NewHTTPRequestError(url string, err error) *HTTPRequestError {
 	return &HTTPRequestError{
 		URL:        url,
@@ -60,6 +59,13 @@ func (e *HTTPStatusError) ErrorCode() string {
 	return "HTTP_STATUS_ERROR"
 }
 
+// Returns a new HTTPStatusError
+
+// HTTPStatusError: Occurs when the returned status code is not 200.
+//
+//	url: The request URL
+//	statusCode: The status code returned from the HTTP request
+//	responseBody: The response body from the request
 func NewHTTPStatusError(url string, statusCode int, responseBody string) *HTTPStatusError {
 	return &HTTPStatusError{
 		URL:          url,
@@ -85,7 +91,11 @@ func (e *ResponseReadError) Unwrap() error {
 	return e.InnerError
 }
 
-func NewResponseReadError(err error) {
+// Returns a new ResponseReadError
+//
+//	ResponseReadError: Occurs when there is an error from READING the response.
+//	err: The inner error
+func NewResponseReadError(err error) *ResponseReadError {
 	return &ResponseReadError{
 		InnerError: err,
 	}
@@ -104,11 +114,15 @@ func (e *ResponseParseError) ErrorCode() string {
 	return "RESPONSE_PARSE_ERROR"
 }
 
-func (e *ResponseReadError) Unwrap() error {
+func (e *ResponseParseError) Unwrap() error {
 	return e.InnerError
 }
 
-func NewResponseParseError(err error) {
+// Returns a new ResponseParseError
+//
+//	ResponseParseError: Occurs when there is an error PARSING the response.
+//	err: The inner error
+func NewResponseParseError(err error) *ResponseParseError {
 	return &ResponseParseError{
 		InnerError: err,
 	}
@@ -127,6 +141,10 @@ func (e *APIError) ErrorCode() string {
 	return "API_ERROR"
 }
 
+// Returns a new APIError
+//
+//	APIError: Occurs when there is an explicit API error.
+//	message: The explicit API error message.
 func NewAPIError(message string) *APIError {
 	return &APIError{
 		Message: message,
@@ -146,6 +164,10 @@ func (e *DataNotFoundError) ErrorCode() string {
 	return "DATA_NOT_FOUND_ERROR"
 }
 
+// Returns a new DataNotFoundError
+//
+//	DataNotFoundError: Occurs when the expected data is not found from the API.
+//	key: The key that was expected but not found.
 func NewDataNotFoundError(key string) *DataNotFoundError {
 	return &DataNotFoundError{
 		Key: key,

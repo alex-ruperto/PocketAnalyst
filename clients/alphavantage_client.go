@@ -53,19 +53,19 @@ func (avc *AlphaVantageClient) FetchDaily(symbol string) ([]*models.Stock, error
 	// Read response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to read Alpha Vantage response: %w", err)
+		return nil, client_errors.NewResponseReadError(err)
 	}
 
 	// Parse the JSON response
 	var response map[string]any
 	// Unmarshal only needs to read body. We need to modify the original response so we pass response by reference here.
 	if err := json.Unmarshal(body, &response); err != nil {
-		return nil, fmt.Errorf("failed to parse Alpha Vantage response: %w", err)
+		return nil, client_errors.NewResponseParseError(err)
 	}
 
 	// Check for API error messages
 	if errorMsg, exists := response["Error Message"]; exists {
-		return nil, fmt.Errorf("Alpha Vantage API error: %v", errorMsg)
+		return nil, client_errors.NewAPIError(errorMsg.(string))
 	}
 
 	// Extract the time series data

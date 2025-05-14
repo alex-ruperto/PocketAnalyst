@@ -55,7 +55,7 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">GoSimpleREST/clients/alphavantage_client.go (81.8%)</option>
+				<option value="file0">PocketAnalyst/clients/alphavantage_client.go (86.4%)</option>
 				
 				</select>
 			</div>
@@ -72,8 +72,8 @@
 		<pre class="file" id="file0" style="display: none">package clients
 
 import (
-        "GoSimpleREST/errors/client_errors"
-        "GoSimpleREST/models"
+        "PocketAnalyst/errors/client_errors"
+        "PocketAnalyst/models"
         "encoding/json"
         "fmt"
         "io"
@@ -116,7 +116,7 @@ func (avc *AlphaVantageClient) FetchDaily(symbol string) ([]*models.Stock, error
         <span class="cov8" title="1">defer resp.Body.Close() // Ensure the response body is closed to prevent resource leaks.
 
         // Check for successful HTTP response. Return a HTTPStatusError if it is not a successful response.
-        if resp.StatusCode != http.StatusOK </span><span class="cov0" title="0">{
+        if resp.StatusCode != http.StatusOK </span><span class="cov8" title="1">{
                 body, _ := io.ReadAll(resp.Body)
                 return nil, client_errors.NewHTTPStatusError(url, resp.StatusCode, string(body))
         }</span>

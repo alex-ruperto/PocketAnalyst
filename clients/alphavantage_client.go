@@ -1,8 +1,8 @@
 package clients
 
 import (
-	"GoSimpleREST/errors/client_errors"
-	"GoSimpleREST/models"
+	"PocketAnalyst/errors/client_errors"
+	"PocketAnalyst/models"
 	"encoding/json"
 	"fmt"
 	"io"

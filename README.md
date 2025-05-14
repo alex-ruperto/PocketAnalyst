@@ -1,10 +1,11 @@
-# GoSimpleREST
+# PokcetAnalyst
 
-GoSimpleREST is exactly as the title says; a simple REST API written in Go.
+PocketAnalyst is an app meant to provide predictions on stock prices based on
+historical data, technical analysis, fundamentals, and broad economic data.
 
 ## Architecture
 
-GoSimpleREST uses MVC (Model-View-Controller) architecture.
+PocketAnalyst uses MVC (Model-View-Controller) architecture.
 
 ### Database Schema
 

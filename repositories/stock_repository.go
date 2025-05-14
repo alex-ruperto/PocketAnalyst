@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	"GoSimpleREST/models"
+	"PocketAnalyst/models"
 	"context"
 	"database/sql"
 	"fmt"

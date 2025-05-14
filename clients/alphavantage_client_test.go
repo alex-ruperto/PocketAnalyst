@@ -2,10 +2,10 @@ package clients
 
 import (
 	"PocketAnalyst/errors/client_errors"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	// "reflect"
 	"testing"
 )
 
@@ -50,28 +50,12 @@ func TestAlphaVantageClient_FetchDaily_Errors(t *testing.T) {
 		client := NewAlphaVantageClient("http://non-existent-url.example", "dummy-api-key")
 		stocks, err := client.FetchDaily("IBM")
 
-		if err == nil {
-			t.Error("Expected an error for a non-existent URL, but got nil.")
-		}
 		if stocks != nil {
 			t.Error("Expected nil stocks, but got some data.")
 		}
 
-		expectedError := &client_errors.HTTPRequestError{}
-		expectedCode := expectedError.ErrorCode()
-
-		// Check error type
-		if !errors.As(err, &expectedError) {
-			t.Errorf("Expected error of type *client_errors.HTTPRequestError, but got %T", err)
-		}
-
-		// Check interface implementation and error code
-		clientErr, ok := err.(client_errors.ClientError)
-		if !ok {
-			t.Errorf("Error does not implement ClientError interface")
-		} else if clientErr.ErrorCode() != expectedCode {
-			t.Errorf("Expected error code %s, but got %s", expectedCode, clientErr.ErrorCode())
-		}
+		expectedErr := &client_errors.HTTPRequestError{}
+		errorValidate(t, err, expectedErr)
 
 	})
 
@@ -90,21 +74,37 @@ func TestAlphaVantageClient_FetchDaily_Errors(t *testing.T) {
 			t.Error("Expected nil stocks, but got some data")
 		}
 
-		expectedError := &client_errors.HTTPStatusError{}
-		expectedCode := expectedError.ErrorCode()
-
-		// Check specific error type
-		if !errors.As(err, &expectedError) {
-			t.Errorf("Expected error of type *client_errors.HTTPStatusError, but got %T", err)
-		}
-
-		// Check interface implementation and error code
-		clientErr, ok := err.(client_errors.ClientError)
-		if !ok {
-			t.Errorf("Error does not implement ClientError interface")
-		} else if clientErr.ErrorCode() != expectedCode {
-			t.Errorf("Expected error code %s, but got %s", expectedCode, clientErr.ErrorCode())
-		}
-
+		expectedErr := &client_errors.HTTPStatusError{}
+		errorValidate(t, err, expectedErr)
 	})
+}
+
+// Validates any error type that implements the ClientError interface.
+func errorValidate(t *testing.T, err error, expectedErr client_errors.ClientError) {
+	if err == nil {
+		t.Error("Expected error, but got nil")
+		return
+	}
+
+	// Check if the error is a client error
+	clientErr, ok := err.(client_errors.ClientError)
+	if !ok {
+		t.Errorf("Error does not implement the ClientError interface")
+		return
+	}
+
+	// Not strictly necessary because we are already comparing error codes, eliminating the need for reflection
+	// Check type equality
+	// expectedType := reflect.TypeOf(expectedErr)
+	// actualType := reflect.TypeOf(err)
+	// if expectedType != actualType {
+	// 	t.Errorf("Expected error of type %v, but got %v", expectedType, actualType)
+	//	return
+	// }
+
+	// Check error code equality
+	expectedCode := expectedErr.ErrorCode()
+	if clientErr.ErrorCode() != expectedCode {
+		t.Errorf("Expected error code %s, but got %s", expectedCode, clientErr.ErrorCode())
+	}
 }

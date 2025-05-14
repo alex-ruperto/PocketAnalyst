@@ -1,7 +1,6 @@
 package clients
 
 import (
-	"net/http/httptest"
 	"os"
 	"testing"
 )
@@ -54,4 +53,6 @@ func TestAlphaVantageClient_FetchDaily_Errors(t *testing.T) {
 			t.Error("Expected nil stocks, but got some data.")
 		}
 	})
+
+	//
 }

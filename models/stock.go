@@ -1,7 +1,7 @@
 package models
 
 import (
-	"GoSimpleREST/errors"
+	"PocketAnalyst/errors"
 	"fmt"
 	"time"
 )

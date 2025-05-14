@@ -1,6 +1,10 @@
 package clients
 
 import (
+	"PocketAnalyst/errors/client_errors"
+	"errors"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 )
@@ -52,7 +56,55 @@ func TestAlphaVantageClient_FetchDaily_Errors(t *testing.T) {
 		if stocks != nil {
 			t.Error("Expected nil stocks, but got some data.")
 		}
+
+		expectedError := &client_errors.HTTPRequestError{}
+		expectedCode := expectedError.ErrorCode()
+
+		// Check error type
+		if !errors.As(err, &expectedError) {
+			t.Errorf("Expected error of type *client_errors.HTTPRequestError, but got %T", err)
+		}
+
+		// Check interface implementation and error code
+		clientErr, ok := err.(client_errors.ClientError)
+		if !ok {
+			t.Errorf("Error does not implement ClientError interface")
+		} else if clientErr.ErrorCode() != expectedCode {
+			t.Errorf("Expected error code %s, but got %s", expectedCode, clientErr.ErrorCode())
+		}
+
 	})
 
-	//
+	// Test case 2: HTTP non-200 status code
+	t.Run("HTTP non-200 status code", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusUnauthorized) // 401
+			w.Write([]byte(`{"error": "Invalid API Key"}`))
+		}))
+		defer server.Close()
+
+		client := NewAlphaVantageClient(server.URL, "invalid-key")
+		stocks, err := client.FetchDaily("IBM")
+
+		if stocks != nil {
+			t.Error("Expected nil stocks, but got some data")
+		}
+
+		expectedError := &client_errors.HTTPStatusError{}
+		expectedCode := expectedError.ErrorCode()
+
+		// Check specific error type
+		if !errors.As(err, &expectedError) {
+			t.Errorf("Expected error of type *client_errors.HTTPStatusError, but got %T", err)
+		}
+
+		// Check interface implementation and error code
+		clientErr, ok := err.(client_errors.ClientError)
+		if !ok {
+			t.Errorf("Error does not implement ClientError interface")
+		} else if clientErr.ErrorCode() != expectedCode {
+			t.Errorf("Expected error code %s, but got %s", expectedCode, clientErr.ErrorCode())
+		}
+
+	})
 }

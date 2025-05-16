@@ -55,7 +55,7 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">PocketAnalyst/clients/alphavantage_client.go (86.4%)</option>
+				<option value="file0">PocketAnalyst/clients/alphavantage_client.go (88.6%)</option>
 				
 				</select>
 			</div>
@@ -135,7 +135,7 @@ func (avc *AlphaVantageClient) FetchDaily(symbol string) ([]*models.Stock, error
         }</span>
 
         // Check for API error messages
-        <span class="cov8" title="1">if errorMsg, exists := response["Error Message"]; exists </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if errorMsg, exists := response["Error Message"]; exists </span><span class="cov8" title="1">{
                 return nil, client_errors.NewAPIError(errorMsg.(string))
         }</span>
 

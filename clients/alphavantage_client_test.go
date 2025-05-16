@@ -77,6 +77,24 @@ func TestAlphaVantageClient_FetchDaily_Errors(t *testing.T) {
 		expectedErr := &client_errors.HTTPStatusError{}
 		errorValidate(t, err, expectedErr)
 	})
+
+	// Test case 3: API Error
+	t.Run("API Error", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`{"Error Message": "Invalid API call"}`))
+		}))
+		defer server.Close()
+
+		client := NewAlphaVantageClient(server.URL, "none")
+		stocks, err := client.FetchDaily("IBM")
+		if stocks != nil {
+			t.Error("Expected nil, but got some data")
+		}
+
+		expectedErr := &client_errors.APIError{}
+		errorValidate(t, err, expectedErr)
+	})
 }
 
 // Validates any error type that implements the ClientError interface.

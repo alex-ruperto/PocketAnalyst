@@ -1,4 +1,4 @@
 PocketAnalyst/clients/alphavantage_client.go:21:	NewAlphaVantageClient	100.0%
-PocketAnalyst/clients/alphavantage_client.go:33:	FetchDaily		84.6%
+PocketAnalyst/clients/alphavantage_client.go:33:	FetchDaily		87.2%
 PocketAnalyst/clients/alphavantage_client.go:127:	parseFloat		100.0%
-total:							(statements)		86.4%
+total:							(statements)		88.6%

@@ -46,3 +46,26 @@ func (s *StockService) FetchAndStoreStockData(ctx context.Context, symbol string
 
 	return storedCount, nil
 }
+
+func (s *StockService) GetStockHistory(
+	ctx context.Context,
+	symbol string,
+	startDate, endDate time.Time,
+) ([]*models.Stock, error) {
+	// Validate date range
+	if startDate.After(endDate) {
+		return nil, errors.NewModelValidationError(
+			"StockService",
+			"date_range",
+			"start date cannot be after end  date",
+		)
+	}
+
+	// Get stock prices from the repository
+	stocks, err := s.stockRepo.GetStockPrices(ctx, symbol, startDate, endDate)
+	if err != nil {
+		return nil, errors.NewServiceError("retrieving stock history", err)
+	}
+
+	return stocks, nil
+}

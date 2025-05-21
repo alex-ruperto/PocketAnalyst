@@ -42,6 +42,7 @@ func main() {
 
 	// Set up HTTP Routes
 	http.HandleFunc("/api/stocks/fetch", stockController.HandleStockFetchRequest)
+	http.HandleFunc("/api/stocks/get"), stockController.HandleStockHistoryRequest)
 
 	// Start HTTP Server
 	log.Printf("Starting server on port %s", port)

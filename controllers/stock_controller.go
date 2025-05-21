@@ -3,7 +3,9 @@ package controllers
 import (
 	"PocketAnalyst/services"
 	"encoding/json"
+	"log"
 	"net/http"
+	"time"
 )
 
 // StockController handles HTTP Requests related to stocks
@@ -49,6 +51,49 @@ func (sc *StockController) HandleStockFetchRequest(w http.ResponseWriter, r *htt
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (sc *StockController) HandleStockHistoryRequest(w http.ResponseWriter, r *http.Request) {
+	// Parse request parameters
+	symbol := r.URL.Query().Get("symbol")
+	if symbol == "" {
+		http.Error(w, "Symbol parameter is required", http.StatusBadRequest)
+		return
+	}
+
+	// Default to last 30 days if not provided
+	endDate := time.Now()
+	startDate := endDate.AddDate(0, 0, -30)
+
+	// Parse date ranges if provided in query parameters
+	if startDateStr := r.URL.Query().Get("start_date"); startDateStr != "" {
+		if parsedDate, err := time.Parse("2006-01-02", startDateStr); err == nil {
+			startDate = parsedDate
+		} else {
+			log.Printf("Invalid start date format: %s", startDateStr)
+		}
+	}
+
+	if endDateStr := r.URL.Query().Get("end_date"); endDateStr != "" {
+		if parsedDate, err := time.Parse("2006-01-02", endDateStr); err == nil {
+			endDate = parsedDate
+		} else {
+			log.Printf("Invalid end date format: %s", endDateStr)
+		}
+	}
+
+	// Get stock history from service layer
+	stocks, err := sc.stockService.GetStockHistory(r.Context(), symbol, startDate, endDate)
+	if err != nil {
+		http.Error(w, "Error retrieving stock data: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Return data as JSON
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(stocks); err != nil {
 		http.Error(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
 	}
 }

@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestAlphaVantageClient_FetchDaily(t *testing.T) {
+func TestAlphaVantageClient_FetchDailyPricesFromAPI(t *testing.T) {
 	if os.Getenv("RUN_INTEGRATION_TESTS") != "true" {
 		t.Skip("Skipping integration test; set RUN_INTEGRATION_TESTS=true to run.")
 	}
@@ -24,7 +24,7 @@ func TestAlphaVantageClient_FetchDaily(t *testing.T) {
 	client := NewAlphaVantageClient("https://www.alphavantage.co/query", apiKey)
 
 	// Make the actual API call
-	stocks, err := client.FetchDaily("AAPL")
+	stocks, err := client.FetchDailyPricesFromAPI("AAPL")
 	if err != nil {
 		t.Fatalf("Failed to fetch data from Alpha Vantage: %v", err)
 	}
@@ -48,7 +48,7 @@ func TestAlphaVantageClient_FetchDaily_Errors(t *testing.T) {
 	// Test case 1: HTTP Request failure
 	t.Run("HTTP Request failure", func(t *testing.T) {
 		client := NewAlphaVantageClient("http://non-existent-url.example", "dummy-api-key")
-		stocks, err := client.FetchDaily("IBM")
+		stocks, err := client.FetchDailyPricesFromAPI("IBM")
 
 		if stocks != nil {
 			t.Error("Expected nil stocks, but got some data.")
@@ -68,7 +68,7 @@ func TestAlphaVantageClient_FetchDaily_Errors(t *testing.T) {
 		defer server.Close()
 
 		client := NewAlphaVantageClient(server.URL, "invalid-key")
-		stocks, err := client.FetchDaily("IBM")
+		stocks, err := client.FetchDailyPricesFromAPI("IBM")
 
 		if stocks != nil {
 			t.Error("Expected nil stocks, but got some data")
@@ -87,7 +87,7 @@ func TestAlphaVantageClient_FetchDaily_Errors(t *testing.T) {
 		defer server.Close()
 
 		client := NewAlphaVantageClient(server.URL, "none")
-		stocks, err := client.FetchDaily("IBM")
+		stocks, err := client.FetchDailyPricesFromAPI("IBM")
 		if stocks != nil {
 			t.Error("Expected nil, but got some data")
 		}

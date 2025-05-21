@@ -34,7 +34,8 @@ func (avc *AlphaVantageClient) FetchDaily(symbol string) ([]*models.Stock, error
 	// Construct URL with required parameters
 	// TIME_SERIES_DAILY_ADJUSTED returns daily adjusted time series
 	// outputsize=compact returns the latest 100 data points
-	url := fmt.Sprintf("%s?function=TIME_SERIES_DAILY&symbol=%s&outputsize=compact&apikey=%s",
+	// outputsize=full returns all the data in its full length
+	url := fmt.Sprintf("%s?function=TIME_SERIES_DAILY&symbol=%s&outputsize=full&apikey=%s",
 		avc.BaseURL, symbol, avc.APIKey)
 
 	// Make HTTP request. Return a HTTPRequestError if it fails.
@@ -85,13 +86,8 @@ func (avc *AlphaVantageClient) FetchDaily(symbol string) ([]*models.Stock, error
 	}
 	sort.Sort(sort.Reverse(sort.StringSlice(dates))) // Sort in descending order (newest first)
 
-	// Process the first 5 entries for display
-	count := 0
+	// Process the entries for display This will continue until there are no more records left for processing.
 	for _, dateStr := range dates {
-		if count >= 5 {
-			break // Only process the first five entries
-		}
-
 		dailyData, ok := timeSeries[dateStr].(map[string]any)
 		if !ok {
 			continue
@@ -119,7 +115,6 @@ func (avc *AlphaVantageClient) FetchDaily(symbol string) ([]*models.Stock, error
 		}
 
 		stocks = append(stocks, stock)
-		count++
 	}
 	return stocks, nil
 }

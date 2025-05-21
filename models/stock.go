@@ -43,8 +43,8 @@ func (s *Stock) Validate() error {
 	switch {
 	case s.Symbol == "":
 		return errors.NewModelValidationError("Stock", "symbol", "symbol is required")
-	case s.CompanyID <= 0:
-		return errors.NewModelValidationError("Stock", "company_id", "company_id must be a positive")
+	case s.CompanyID < 0:
+		return errors.NewModelValidationError("Stock", "company_id", "company_id must be a positive number")
 	case s.Date.IsZero():
 		return errors.NewModelValidationError("Stock", "date", "date cannot be empty")
 	case s.OpenPrice < 0:

@@ -4,7 +4,6 @@ import (
 	"PocketAnalyst/services"
 	"encoding/json"
 	"net/http"
-	"time"
 )
 
 // StockController handles HTTP Requests related to stocks

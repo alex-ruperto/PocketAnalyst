@@ -26,7 +26,7 @@ func NewStockService(
 	}
 }
 
-func (s *StockService) FetchAndStoreStockData(ctx context.Context, symbol string) (int, error) {
+func (s *StockService) SynchronizeStockData(ctx context.Context, symbol string) (int, error) {
 	// Fetch stock data from Alpha Vantage API
 	stocks, err := s.alphaClient.FetchDailyPricesFromAPI(symbol)
 	if err != nil {

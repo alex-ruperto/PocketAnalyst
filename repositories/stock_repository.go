@@ -35,10 +35,6 @@ func (sr *StockRepository) StoreStockPrices(ctx context.Context, stocks []*model
 
 	// Process each stock
 	for _, stock := range stocks {
-		// Validate the stock data using model's validation
-		if err := stock.Validate(); err != nil {
-			return 0, err
-		}
 
 		// Check if company exists in the companies table
 		var companyID int
@@ -72,6 +68,12 @@ func (sr *StockRepository) StoreStockPrices(ctx context.Context, stocks []*model
 
 		// Set the company ID for the stock
 		stock.CompanyID = companyID
+
+		// MOVED: Validate the stock data using model's validation AFTER setting the company ID.
+		if err := stock.Validate(); err != nil {
+			return 0, err
+		}
+
 	}
 
 	// Use a prepared statement for efficient batch insertion as it can be reused.
@@ -86,7 +88,7 @@ func (sr *StockRepository) StoreStockPrices(ctx context.Context, stocks []*model
 		INSERT INTO stock_prices
 		(company_id, symbol, date, open_price, high_price, low_price,
 		close_price, adjusted_close, volume, dividend_amount, 
-		split_coefficient, source_id, created_at)
+		split_coefficient, source_id, last_updated)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
 		ON CONFLICT (company_id, date, source_id)
 		DO UPDATE SET
@@ -98,7 +100,7 @@ func (sr *StockRepository) StoreStockPrices(ctx context.Context, stocks []*model
 		volume = EXCLUDED.volume,
 		dividend_amount = EXCLUDED.dividend_amount,
 		split_coefficient = EXCLUDED.split_coefficient,
-		created_at = EXCLUDED.created_at
+		last_updated = EXCLUDED.last_updated
 		RETURNING price_id
 		`,
 	)

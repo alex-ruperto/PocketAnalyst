@@ -20,7 +20,7 @@ func NewStockRepository(db *sql.DB) *StockRepository {
 
 // StoreStockPrices stores multiple stock price records. Using a transaction, all operations will
 // either succeed or fail together.
-func (sr *StockRepository) StoreStockPrices(ctx context.Context, stocks []*models.Stock) (int, error) {
+func (sr *StockRepository) SaveStocksToDatabase(ctx context.Context, stocks []*models.Stock) (int, error) {
 	// Begin transaction
 	// Transaction will ensures all stock prices are inserted/updated or none are.
 	// This preserves data consistency in case of errors.
@@ -159,7 +159,7 @@ func (sr *StockRepository) StoreStockPrices(ctx context.Context, stocks []*model
 
 // Retrieves stock prices for a symbol within a date range. The date range helps limit the data returned to what
 // is actually needed.
-func (sr *StockRepository) GetStockPrices(
+func (sr *StockRepository) RetrieveStocksFromDatabase(
 	ctx context.Context,
 	symbol string,
 	startDate, endDate time.Time,

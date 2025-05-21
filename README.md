@@ -1,4 +1,4 @@
-# PokcetAnalyst
+# PocketAnalyst
 
 PocketAnalyst is an app meant to provide predictions on stock prices based on
 historical data, technical analysis, fundamentals, and broad economic data.

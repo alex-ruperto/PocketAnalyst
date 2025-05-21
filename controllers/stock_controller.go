@@ -3,7 +3,6 @@ package controllers
 import (
 	"PocketAnalyst/services"
 	"encoding/json"
-	"log"
 	"net/http"
 	"time"
 )
@@ -31,7 +30,7 @@ func (sc *StockController) HandleStockFetchRequest(w http.ResponseWriter, r *htt
 	// Parse requset parameters
 	symbol := r.URL.Query().Get("symbol")
 	if symbol == "" {
-		http.Error(w, "symbol parameter is required", http.StatusBadRequest)
+		http.Error(w, "Symbol parameter is required", http.StatusBadRequest)
 		return
 	}
 
@@ -72,7 +71,8 @@ func (sc *StockController) HandleStockHistoryRequest(w http.ResponseWriter, r *h
 		if parsedDate, err := time.Parse("2006-01-02", startDateStr); err == nil {
 			startDate = parsedDate
 		} else {
-			log.Printf("Invalid start date format: %s", startDateStr)
+			http.Error(w, "Invalid start date format. Please format like 'YYYY-MM-DD.", http.StatusInternalServerError)
+			return
 		}
 	}
 
@@ -80,8 +80,15 @@ func (sc *StockController) HandleStockHistoryRequest(w http.ResponseWriter, r *h
 		if parsedDate, err := time.Parse("2006-01-02", endDateStr); err == nil {
 			endDate = parsedDate
 		} else {
-			log.Printf("Invalid end date format: %s", endDateStr)
+			http.Error(w, "Invalid end date format. Please format like: 'YYYY-MM-DD", http.StatusInternalServerError)
+			return
 		}
+	}
+
+	// Validate date range: ensure start date is not after end date
+	if startDate.After(endDate) {
+		http.Error(w, "Invalid date range: start date cannot be after end date.", http.StatusBadRequest)
+		return
 	}
 
 	// Get stock history from service layer

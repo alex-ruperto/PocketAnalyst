@@ -169,7 +169,7 @@ func (sr *StockRepository) RetrieveStocksFromDatabase(
 		SELECT sp.price_id, sp.company_id, sp.symbol, sp.date, 
 		       sp.open_price, sp.high_price, sp.low_price, sp.close_price, 
 		       sp.adjusted_close, sp.volume, sp.dividend_amount, 
-		       sp.split_coefficient, ds.source_name, sp.created_at
+		       sp.split_coefficient, ds.source_name, sp.last_updated
 		FROM stock_prices sp
 		JOIN data_sources ds ON sp.source_id = ds.source_id
 		WHERE sp.symbol = $1 AND sp.date BETWEEN $2 AND $3

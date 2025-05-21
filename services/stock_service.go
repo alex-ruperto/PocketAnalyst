@@ -30,18 +30,18 @@ func (s *StockService) FetchAndStoreStockData(ctx context.Context, symbol string
 	// Fetch stock data from Alpha Vantage API
 	stocks, err := s.alphaClient.FetchDailyPricesFromAPI(symbol)
 	if err != nil {
-		return 0, errors.NewServiceError("fetching stock data", err)
+		return 0, errors.NewServiceError("Fetching stock data", err)
 	}
 
 	// If no data was returned, return early
 	if len(stocks) == 0 {
-		return 0, fmt.Errorf("no stock data found for symbol %s", symbol)
+		return 0, fmt.Errorf("No stock data found for symbol %s", symbol)
 	}
 
 	// Store the fetched data in the database
-	storedCount, err := s.stockRepo.StoreStockPrices(ctx, stocks)
+	storedCount, err := s.stockRepo.SaveStocksToDatabase(ctx, stocks)
 	if err != nil {
-		return 0, errors.NewServiceError("storing stock data", err)
+		return 0, errors.NewServiceError("Storing stock data", err)
 	}
 
 	return storedCount, nil
@@ -62,9 +62,9 @@ func (s *StockService) GetStockHistory(
 	}
 
 	// Get stock prices from the repository
-	stocks, err := s.stockRepo.GetStockPrices(ctx, symbol, startDate, endDate)
+	stocks, err := s.stockRepo.RetrieveStocksFromDatabase(ctx, symbol, startDate, endDate)
 	if err != nil {
-		return nil, errors.NewServiceError("retrieving stock history", err)
+		return nil, errors.NewServiceError("Retrieving stock history", err)
 	}
 
 	return stocks, nil

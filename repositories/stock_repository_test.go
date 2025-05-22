@@ -33,8 +33,6 @@ func TestStockRepository_CheckIfSymbolExists(t *testing.T) {
 		t.Fatalf("Failed to ping database: %v", err)
 	}
 
-	log.Println("Connected to database successfully")
-
 	stockRepo := NewStockRepository(db)
 
 	t.Run("Check existing symbol", func(t *testing.T) {

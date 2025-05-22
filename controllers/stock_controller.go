@@ -71,7 +71,7 @@ func (sc *StockController) HandleStockHistoryRequest(w http.ResponseWriter, r *h
 		if parsedDate, err := time.Parse("2006-01-02", startDateStr); err == nil {
 			startDate = parsedDate
 		} else {
-			http.Error(w, "Invalid start date format. Please format like 'YYYY-MM-DD.", http.StatusInternalServerError)
+			http.Error(w, "Invalid start date format. Please format like 'YYYY-MM-DD.'", http.StatusInternalServerError)
 			return
 		}
 	}

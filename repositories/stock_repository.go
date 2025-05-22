@@ -18,7 +18,7 @@ func NewStockRepository(db *sql.DB) *StockRepository {
 	return &StockRepository{db: db}
 }
 
-// StoreStockPrices stores multiple stock price records. Using a transaction, all operations will
+// SaveStocksToDatabase stores multiple stock price records. Using a transaction, all operations will
 // either succeed or fail together.
 func (sr *StockRepository) SaveStocksToDatabase(ctx context.Context, stocks []*models.Stock) (int, error) {
 	// Begin transaction
@@ -177,6 +177,7 @@ func (sr *StockRepository) RetrieveStocksFromDatabase(
 	`
 
 	// Execute the query with parameters
+	// Will return rows
 	// QueryContext ensures the query can be cancelled if the context is cancelled
 	rows, err := sr.db.QueryContext(ctx, query, symbol, startDate, endDate)
 	if err != nil {
@@ -216,7 +217,7 @@ func (sr *StockRepository) RetrieveStocksFromDatabase(
 
 		s.LastUpdated = lastUpdated
 
-		// Return the stocks as a
+		// Return the stocks
 		stocks = append(stocks, &s)
 	}
 
@@ -227,4 +228,28 @@ func (sr *StockRepository) RetrieveStocksFromDatabase(
 	}
 
 	return stocks, nil
+}
+
+// CheckIfSymbolExists checks the stock_prices table for every distinct symbol to see if exists.
+// If the symbol does not exist, return false, otherwise return true.
+func (sr *StockRepository) CheckIfSymbolExists(ctx context.Context, symbol string) (bool, error) {
+	// This query will return exactly one row and one column. The EXISTS statement returns
+	// true if it finds any rows in the inner query.
+	query := `
+		SELECT EXISTS(
+			SELECT 1
+			FROM stock_prices
+			WHERE symbol = $1
+		)
+	`
+	var exists bool
+
+	// Pass in the memory address of the exists variable to modify it directly.
+	// QueryRowContext handles the single result and respects context cancellation/timeout
+	err := sr.db.QueryRowContext(ctx, query, symbol).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("Failed to check if symbol %s exists: %w", symbol, err)
+	}
+
+	return exists, nil
 }

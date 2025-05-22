@@ -3,7 +3,6 @@ package repositories
 import (
 	"context"
 	"database/sql"
-	"log"
 	"os"
 	"testing"
 	"time"
@@ -36,14 +35,32 @@ func TestStockRepository_CheckIfSymbolExists(t *testing.T) {
 	stockRepo := NewStockRepository(db)
 
 	t.Run("Check existing symbol", func(t *testing.T) {
+		symbol := "AAPL"
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		exists, err := stockRepo.CheckIfSymbolExists(ctx, "AAPL")
+		exists, err := stockRepo.CheckIfSymbolExists(ctx, symbol)
 		if err != nil {
 			t.Fatalf("Unexpected error: %v", err)
 		}
 
-		t.Logf("Symbol AAPL exists: %v", exists)
+		t.Logf("Symbol %v exists: %v", symbol, exists)
+	})
+
+	t.Run("Check non-existing symbol", func(t *testing.T) {
+		symbol := "T"
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		exists, err := stockRepo.CheckIfSymbolExists(ctx, symbol)
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
+
+		if exists == false {
+			t.Logf("Symbol %v does not exist: %v", symbol, exists)
+		} else {
+			t.Fail()
+		}
 	})
 }

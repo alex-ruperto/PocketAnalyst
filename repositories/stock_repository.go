@@ -229,27 +229,3 @@ func (sr *StockRepository) RetrieveStocksFromDatabase(
 
 	return stocks, nil
 }
-
-// CheckIfSymbolExists checks the stock_prices table for every distinct symbol to see if exists.
-// If the symbol does not exist, return false, otherwise return true.
-func (sr *StockRepository) CheckIfSymbolExists(ctx context.Context, symbol string) (bool, error) {
-	// This query will return exactly one row and one column. The EXISTS statement returns
-	// true if it finds any rows in the inner query.
-	query := `
-		SELECT EXISTS(
-			SELECT 1
-			FROM stock_prices
-			WHERE symbol = $1
-		)
-	`
-	var exists bool
-
-	// Pass in the memory address of the exists variable to modify it directly.
-	// QueryRowContext handles the single result and respects context cancellation/timeout
-	err := sr.db.QueryRowContext(ctx, query, symbol).Scan(&exists)
-	if err != nil {
-		return false, fmt.Errorf("Failed to check if symbol %s exists: %w", symbol, err)
-	}
-
-	return exists, nil
-}

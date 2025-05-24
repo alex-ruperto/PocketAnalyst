@@ -7,6 +7,7 @@ import (
 	"PocketAnalyst/repositories"
 	"context"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -63,11 +64,15 @@ func (s *StockService) GetStockHistory(
 		return nil, errors.NewServiceError("Retrieving stock history", err)
 	}
 
+	// If no data is returned, treat as "symbol not found."
+	if len(stocks) == 0 {
+		return nil, errors.NewNotFoundError("Symbol", symbol)
+	}
 	return stocks, nil
 }
 
 func (s *StockService) validateInput(symbol string, startDate, endDate time.Time) error {
-	if symbol == "" {
+	if strings.TrimSpace(symbol) == "" {
 		return errors.NewModelValidationError(
 			"StockService",
 			"symbol",

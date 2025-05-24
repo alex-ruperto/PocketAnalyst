@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"PocketAnalyst/errors"
 	"PocketAnalyst/services"
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 )
@@ -37,7 +39,7 @@ func (sc *StockController) HandleStockFetchRequest(w http.ResponseWriter, r *htt
 	// Fetch and store stock data in DB
 	count, err := sc.stockService.SynchronizeStockData(r.Context(), symbol)
 	if err != nil {
-		http.Error(w, "Error fetching stock data: "+err.Error(), http.StatusInternalServerError)
+		sc.handleServiceError(w, err)
 		return
 	}
 
@@ -71,7 +73,7 @@ func (sc *StockController) HandleStockHistoryRequest(w http.ResponseWriter, r *h
 		if parsedDate, err := time.Parse("2006-01-02", startDateStr); err == nil {
 			startDate = parsedDate
 		} else {
-			http.Error(w, "Invalid start date format. Please format like 'YYYY-MM-DD.'", http.StatusInternalServerError)
+			http.Error(w, "Invalid start date format. Please format like 'YYYY-MM-DD.'", http.StatusBadRequest)
 			return
 		}
 	}
@@ -80,7 +82,7 @@ func (sc *StockController) HandleStockHistoryRequest(w http.ResponseWriter, r *h
 		if parsedDate, err := time.Parse("2006-01-02", endDateStr); err == nil {
 			endDate = parsedDate
 		} else {
-			http.Error(w, "Invalid end date format. Please format like: 'YYYY-MM-DD", http.StatusInternalServerError)
+			http.Error(w, "Invalid end date format. Please format like: 'YYYY-MM-DD", http.StatusBadRequest)
 			return
 		}
 	}
@@ -94,7 +96,7 @@ func (sc *StockController) HandleStockHistoryRequest(w http.ResponseWriter, r *h
 	// Get stock history from service layer
 	stocks, err := sc.stockService.GetStockHistory(r.Context(), symbol, startDate, endDate)
 	if err != nil {
-		http.Error(w, "Error retrieving stock data: "+err.Error(), http.StatusInternalServerError)
+		sc.handleServiceError(w, err)
 		return
 	}
 
@@ -102,5 +104,26 @@ func (sc *StockController) HandleStockHistoryRequest(w http.ResponseWriter, r *h
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(stocks); err != nil {
 		http.Error(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
+	}
+}
+
+// Caller must return for this function!
+func (sc *StockController) handleServiceError(w http.ResponseWriter, err error) {
+	switch e := err.(type) {
+	case *errors.ModelValidationError:
+		// 400 Bad Request
+		http.Error(w, e.Error(), http.StatusBadRequest)
+	case *errors.NotFoundError:
+		// 404 Not Found
+		http.Error(w, e.Error(), http.StatusNotFound)
+	case *errors.ServiceError:
+		// Service/database errors -> 500 Internal Server Error
+		http.Error(w, "Internal server error occurred", http.StatusInternalServerError)
+		// Log the actual error for debugging (don't expose to user)
+		log.Printf("Service error: %v", e)
+	default:
+		// Unknown errors -> 500
+		http.Error(w, "Internal server error occurred", http.StatusInternalServerError)
+		log.Printf("Unknown error: %v", err)
 	}
 }

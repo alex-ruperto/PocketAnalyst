@@ -78,7 +78,6 @@ func (app *App) initDatabase() error {
 func (app *App) setupRoutes() error {
 	// Initalize repositories
 	stockRepo := repositories.NewStockRepository(app.DB)
-	datasourceRepo := repositories.NewDataSourceRepository(app.DB)
 
 	// Initialize external clients
 	alphaClient := clients.NewAlphaVantageClient(
@@ -109,5 +108,21 @@ func (app *App) withMiddleware(handler http.HandlerFunc) http.HandlerFunc {
 				app.recoveryMiddleware(handler),
 			),
 		)(w, r)
+	}
+}
+
+// corsMiddleWare handles Cross-Origin resource sharing
+func (app *App) corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
 	}
 }

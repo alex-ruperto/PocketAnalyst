@@ -49,6 +49,8 @@ func NewApp(config *Config) (*App, error) {
 	if err := app.setupRoutes(); err != nil {
 		return nil, err
 	}
+
+	return app, nil
 }
 
 // initDatabase establishse a db connection

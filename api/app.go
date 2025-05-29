@@ -111,6 +111,32 @@ func (app *App) withMiddleware(handler http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+// loggingResponseWriter wraps http.ResponseWriter to capture status codes
+type loggingResponseWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+// WriteHeader captures the status code
+func (lrw *loggingResponseWriter) WriteHeader(code int) {
+	lrw.statusCode = code
+	lrw.ResponseWriter.WriteHeader(code)
+}
+
+// loggingMiddleware logs all incoming requests
+func (app *App) loggingMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+
+		// Create a custom response writer to capture the status code
+		lrw := &loggingResponseWriter{ResponseWriter: w, statusCode: http.StatusOK}
+
+		next.ServeHTTP(lrw, r)
+
+		log.Printf("%s %s %d %v", r.Method, r.URL.Path, lrw.statusCode, time.Since(start))
+	}
+}
+
 // corsMiddleWare handles Cross-Origin resource sharing
 func (app *App) corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -125,4 +151,39 @@ func (app *App) corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 		next.ServeHTTP(w, r)
 	}
+}
+
+// recoveryMiddleware handles recovery from panics and returns a 500 error.
+func (app *App) recoveryMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Printf("Panic recovered: %v", err)
+				http.Error(w, "Internal server error", http.StatusInternalServerError)
+			}
+		}()
+		next.ServeHTTP(w, r)
+	}
+}
+
+// Start the HTTP server with the configured timeouts
+func (app *App) Start() error {
+	server := &http.Server{
+		Addr:         ":" + app.Config.Port,
+		Handler:      app.Router,
+		ReadTimeout:  app.Config.ReadTimeout,
+		WriteTimeout: app.Config.WriteTimeout,
+	}
+
+	log.Printf("Starting server on port %s", app.Config.Port)
+	return server.ListenAndServe()
+}
+
+// Gracefully shuts down the application
+func (app *App) Close() error {
+	if app.DB != nil {
+		log.Println("Closing database connection")
+		return app.DB.Close()
+	}
+	return nil
 }

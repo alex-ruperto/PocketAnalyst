@@ -2,13 +2,7 @@ package main
 
 import (
 	"PocketAnalyst/api"
-	"PocketAnalyst/clients"
-	"PocketAnalyst/controllers"
-	"PocketAnalyst/repositories"
-	"PocketAnalyst/services"
-	"database/sql"
 	"log"
-	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -17,41 +11,27 @@ import (
 )
 
 func main() {
-	// Get configuration from env variables
-	dbConnectionString := os.Getenv("DATABASE_URL")
-	alphaVantageAPIKey := os.Getenv("ALPHA_VANTAGE_API_KEY")
-	alphaVantageBaseURL := os.Getenv("ALPHA_VANTAGE_BASE_URL")
-	port := "8080"
+	// Load configuration from environment variables
+	config := loadConfig()
 
-	// Connect to DB
-	db, err := sql.Open("postgres", dbConnectionString)
+	// Create and initalize the application
+	app, err := api.NewApp(config)
 	if err != nil {
-		log.Fatalf("Failed to connect to the database: %v", err)
+		log.Fatalf("Failed to initialize application: %v", err)
 	}
 
-	defer db.Close()
+	// Ensure a graceful shutdown
+	defer func() {
+		if err := app.Close(); err != nil {
+			log.Printf("Error during application shutdown: %v", err)
+		}
+	}()
 
-	// Verify db connection
-	if err := db.Ping(); err != nil {
-		log.Fatalf("Failed to ping database: %v", err)
+	// Start the server
+	if err := app.Start(); err != nil {
+		log.Fatalf("Server failed to start %v", err)
 	}
-	log.Println("Connected to database successfully")
-
-	// Create instances of all components
-	stockRepo := repositories.NewStockRepository(db)
-	alphaClient := clients.NewAlphaVantageClient(alphaVantageBaseURL, alphaVantageAPIKey)
-	stockService := services.NewStockService(stockRepo, alphaClient)
-	stockController := controllers.NewStockController(stockService)
-
-	// Set up HTTP Routes
-	http.HandleFunc("/api/stocks/fetch", stockController.HandleStockFetchRequest)
-	http.HandleFunc("/api/stocks/get", stockController.HandleStockHistoryRequest)
-
-	// Start HTTP Server
-	log.Printf("Starting server on port %s", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
-	}
+	log.Printf("Server started successfully.")
 }
 
 func loadConfig() *api.Config {
@@ -68,6 +48,7 @@ func loadConfig() *api.Config {
 	}
 }
 
+// getEnvWithDefault returns environment variables as strings or default if not set/invalid
 func getEnvWithDefault(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value

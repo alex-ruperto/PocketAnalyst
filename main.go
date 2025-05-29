@@ -1,6 +1,7 @@
 package main
 
 import (
+	"PocketAnalyst/api"
 	"PocketAnalyst/clients"
 	"PocketAnalyst/controllers"
 	"PocketAnalyst/repositories"
@@ -9,6 +10,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"time"
 
 	_ "github.com/lib/pq" // PostgreSQL driver
 )
@@ -49,4 +52,36 @@ func main() {
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
+}
+
+func loadConfig() *api.Config {
+	return &api.Config{
+		DatabaseURL:           getEnvWithDefault("DATABASE_URL", "postgres://localhost/pocketanalyst?sslmode=disable"),
+		AlphaVantageAPIKey:    getEnvWithDefault("ALPHA_VANTAGE_API_KEY", ""),
+		AlphaVantageBaseURL:   getEnvWithDefault("ALPHA_VANTAGE_BASE_URL", "https://www.alphavantage.co/query"),
+		Port:                  getEnvWithDefault("PORT", "8080"),
+		ReadTimeout:           time.Duration(getEnvAsInt("READ_TIMEOUT_SECONDS", 30)) * time.Second,
+		WriteTimeout:          time.Duration(getEnvAsInt("WRITE_TIMEOUT_SECONDS", 30)) * time.Second,
+		MaxIdleConnections:    getEnvAsInt("MAX_IDLE_CONNECTIONS", 10),
+		MaxOpenConnections:    getEnvAsInt("MAX_OPEN_CONNECTIONS", 100),
+		ConnectionMaxLifetime: time.Duration(getEnvAsInt("CONNECTION_MAX_LIFETIME_MINUTES", 60)) * time.Minute,
+	}
+}
+
+func getEnvWithDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
+// getEnvAsInt returns environment variables as integer or default if not set/invalid
+func getEnvAsInt(key string, defaultValue int) int {
+	if valueStr := os.Getenv(key); valueStr != "" {
+		if value, err := strconv.Atoi(valueStr); err == nil {
+			return value
+		}
+		log.Printf("Warning: Invalid integer value for %s: %s, using default: %d", key, valueStr, defaultValue)
+	}
+	return defaultValue
 }

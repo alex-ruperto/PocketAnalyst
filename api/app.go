@@ -30,7 +30,7 @@ type Config struct {
 	WriteTimeout          time.Duration
 	MaxIdleConnections    int
 	MaxOpenConnections    int
-	ConnectionMaxLifeTime time.Duration
+	ConnectionMaxLifetime time.Duration
 }
 
 // NewApp creates a new app instance.
@@ -63,7 +63,7 @@ func (app *App) initDatabase() error {
 	// Configure connection pool for prod use
 	db.SetMaxIdleConns(app.Config.MaxIdleConnections)
 	db.SetMaxOpenConns(app.Config.MaxOpenConnections)
-	db.SetConnMaxLifetime(app.Config.ConnectionMaxLifeTime)
+	db.SetConnMaxLifetime(app.Config.ConnectionMaxLifetime)
 
 	// Verify db connection
 	if err := db.Ping(); err != nil {

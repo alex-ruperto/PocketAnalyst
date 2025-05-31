@@ -1,8 +1,8 @@
 package models
 
 import (
-	"PocketAnalyst/errors"
 	"fmt"
+	"pocketanalyst/pkg/errors"
 	"time"
 )
 

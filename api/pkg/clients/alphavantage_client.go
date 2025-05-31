@@ -1,12 +1,12 @@
 package clients
 
 import (
-	"PocketAnalyst/errors/client_errors"
-	"PocketAnalyst/models"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"pocketanalyst/internal/models"
+	"pocketanalyst/pkg/errors/client_errors"
 	"sort"
 	"strconv"
 	"time"

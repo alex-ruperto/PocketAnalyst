@@ -1,11 +1,11 @@
 package repositories
 
 import (
-	"PocketAnalyst/models"
 	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"pocketanalyst/internal/models"
 )
 
 // DataSourceRepository handles DB operations for data sources

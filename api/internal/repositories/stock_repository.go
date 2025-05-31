@@ -1,10 +1,10 @@
 package repositories
 
 import (
-	"PocketAnalyst/models"
 	"context"
 	"database/sql"
 	"fmt"
+	"pocketanalyst/internal/models"
 	"time"
 )
 

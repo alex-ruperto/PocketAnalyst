@@ -1,11 +1,11 @@
 package controllers
 
 import (
-	"PocketAnalyst/errors"
-	"PocketAnalyst/services"
 	"encoding/json"
 	"log"
 	"net/http"
+	"pocketanalyst/internal/services"
+	"pocketanalyst/pkg/errors"
 	"time"
 )
 

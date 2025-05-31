@@ -1,9 +1,9 @@
 package main
 
 import (
-	"PocketAnalyst/api"
 	"log"
 	"os"
+	"pocketanalyst/internal/app"
 	"strconv"
 	"time"
 
@@ -15,7 +15,7 @@ func main() {
 	config := loadConfig()
 
 	// Create and initalize the application
-	app, err := api.NewApp(config)
+	app, err := app.NewApp(config)
 	if err != nil {
 		log.Fatalf("Failed to initialize application: %v", err)
 	}
@@ -34,8 +34,8 @@ func main() {
 	log.Printf("Server started successfully.")
 }
 
-func loadConfig() *api.Config {
-	return &api.Config{
+func loadConfig() *app.Config {
+	return &app.Config{
 		DatabaseURL:           getEnvWithDefault("DATABASE_URL", "postgres://localhost/pocketanalyst?sslmode=disable"),
 		AlphaVantageAPIKey:    getEnvWithDefault("ALPHA_VANTAGE_API_KEY", ""),
 		AlphaVantageBaseURL:   getEnvWithDefault("ALPHA_VANTAGE_BASE_URL", "https://www.alphavantage.co/query"),

@@ -1,12 +1,12 @@
 package services
 
 import (
-	"PocketAnalyst/clients"
-	"PocketAnalyst/errors"
-	"PocketAnalyst/models"
-	"PocketAnalyst/repositories"
 	"context"
 	"fmt"
+	"pocketanalyst/internal/models"
+	"pocketanalyst/internal/repositories"
+	"pocketanalyst/pkg/clients"
+	"pocketanalyst/pkg/errors"
 	"strings"
 	"time"
 )

@@ -1,4 +1,4 @@
-module PocketAnalyst
+module pocketanalyst
 
 go 1.24.2
 

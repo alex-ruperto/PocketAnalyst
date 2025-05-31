@@ -1,13 +1,13 @@
-package api
+package app
 
 import (
-	"PocketAnalyst/clients"
-	"PocketAnalyst/controllers"
-	"PocketAnalyst/repositories"
-	"PocketAnalyst/services"
 	"database/sql"
 	"log"
 	"net/http"
+	"pocketanalyst/internal/controllers"
+	"pocketanalyst/internal/repositories"
+	"pocketanalyst/internal/services"
+	"pocketanalyst/pkg/clients"
 	"time"
 
 	_ "github.com/lib/pq" // PostgreSQL driver

@@ -1,10 +1,10 @@
 package clients
 
 import (
-	"PocketAnalyst/errors/client_errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"pocketanalyst/pkg/errors/client_errors"
 	// "reflect"
 	"testing"
 )

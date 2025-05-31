@@ -1,0 +1,246 @@
+# .gitignore for PocketAnalyst (Monorepo)
+# Place this file at the repository root: PocketAnalyst/.gitignore
+
+# ================================================
+# ENVIRONMENT & SECRETS
+# ================================================
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+*.key
+*.pem
+*.p12
+config/local.yml
+config/secrets.yml
+
+# ================================================
+# GO SPECIFIC
+# ================================================
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+api/bin/
+api/dist/
+
+# Go build artifacts
+*.test
+*.out
+vendor/
+
+# Go module cache
+go.sum.backup
+
+# IDE specific
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ================================================
+# PYTHON SPECIFIC  
+# ================================================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Virtual environments
+ml/venv/
+ml/env/
+ml/ENV/
+venv/
+env/
+ENV/
+
+# PyEnv
+.python-version
+
+# ================================================
+# JUPYTER NOTEBOOKS
+# ================================================
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# IPython
+profile_default/
+ipython_config.py
+
+# ================================================
+# MACHINE LEARNING SPECIFIC
+# ================================================
+# Model files (large binary files)
+ml/models/*.pth
+ml/models/*.pkl
+ml/models/*.joblib
+ml/models/*.h5
+ml/models/*.pb
+ml/models/*.onnx
+ml/models/*.pt
+
+# Training artifacts
+ml/runs/
+ml/logs/
+ml/checkpoints/
+ml/tensorboard/
+ml/wandb/
+ml/mlruns/
+
+# Data files (usually too large for git)
+ml/data/raw/
+ml/data/processed/
+ml/data/external/
+ml/data/*.csv
+ml/data/*.parquet
+ml/data/*.h5
+ml/data/*.hdf5
+
+# Keep data structure but ignore actual data files
+!ml/data/.gitkeep
+!ml/data/raw/.gitkeep
+!ml/data/processed/.gitkeep
+
+# Cache directories
+.cache/
+*.cache
+
+# ================================================
+# DATABASE
+# ================================================
+*.db
+*.sqlite
+*.sqlite3
+database/data/
+*.sql.backup
+
+# ================================================
+# DOCKER & CONTAINERS
+# ================================================
+.dockerignore
+
+# ================================================
+# TEST REPORTS & COVERAGE
+# ================================================
+test-reports/
+coverage-*.out
+coverage-*.html
+coverage-*.txt
+*.test.log
+
+# Keep test report structure
+!test-reports/.gitkeep
+
+# ================================================
+# LOGS
+# ================================================
+*.log
+logs/
+*.log.*
+
+# ================================================
+# TEMPORARY FILES
+# ================================================
+*.tmp
+*.temp
+*.bak
+*.backup
+*.orig
+*.rej
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ================================================
+# NODE.JS (if you add frontend later)
+# ================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ================================================
+# CERTIFICATES & KEYS
+# ================================================
+*.crt
+*.key
+*.pem
+*.p12
+*.pfx
+ssl/
+
+# ================================================
+# BACKUPS
+# ================================================
+*.backup
+*.bak
+*~
+
+# ================================================
+# SPECIFIC TO YOUR PROJECT
+# ================================================
+# Alpha Vantage cache 
+cache/alphavantage/
+
+# Model training outputs
+ml/outputs/
+ml/experiments/
+
+# Local configuration overrides
+config/local.*
+api/config/local.*
+ml/config/local.*

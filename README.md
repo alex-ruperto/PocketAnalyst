@@ -225,14 +225,19 @@ Tracks execution of system jobs for monitoring and debugging.
 - details: Additional job details
 - created_at: Timestamp when the record was created
 
-## Testing
+## Machine Learning
 
-- Get an Alpha Vantage API Key from [here](https://www.alphavantage.co/)
-- Run export ALPHA_VANTAGE_API_KEY=yourapikey
-- Run chmod +x scripts/run-tests.sh in terminal
-- Use one of the following make commands
-    - make test-all
-    - make test-clients
-    - make test-repositories
-    - make test-core
-    - make test-clean
+PocketAnalyst uses domain-specific ensemble architecture along with a weighting strategy
+to generate predictions. This helps specialize ML Model expertise and prevent overfitting.
+
+✅ = Implemented
+❌ = Not Implemented
+
+- ❌ **Technical Model**: Masters chart patterns, support/resistance, momentum
+(1 to 7 days)
+- ❌ **Sentiment Model**: Captures news reactions, social media buzz, and
+event impacts (1 to 30 days)
+- ❌ **Macro Model**: Learns interest rate impacts, sector rotation, and market
+regimes (7 to 90 days)
+- ❌ **Fundamental Model**: Understands valuation, financial health, and earnings
+growth (30 to 365 days)

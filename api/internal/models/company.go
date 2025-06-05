@@ -7,14 +7,14 @@ import (
 
 // Company represents a company entity in the database
 type Company struct {
-	CompanyID int       `json:"company_id"`
-	Symbol    string    `json:"symbol"`
-	Name      string    `json:"name"`
-	Sector    string    `json:"sector"`
-	Industry  string    `json:"industry"`
-	Exchange  string    `json:"exchange"`
-	IsActive  bool      `json:"is_active"`
-	CreatedAt time.Time `json:"created_at"`
+	CompanyID   int       `json:"company_id"`
+	Symbol      string    `json:"symbol"`
+	Name        string    `json:"name"`
+	Sector      string    `json:"sector"`
+	Industry    string    `json:"industry"`
+	Exchange    string    `json:"exchange"`
+	IsActive    bool      `json:"is_active"`
+	LastUpdated time.Time `json:"last_updated"`
 }
 
 // Validate ensures the stock data meets all logical rules

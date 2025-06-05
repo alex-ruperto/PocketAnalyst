@@ -49,7 +49,7 @@ func (sr *StockRepository) SaveStocksToDatabase(ctx context.Context, stocks []*m
 			err = tx.QueryRowContext(
 				ctx,
 				`
-				INSERT INTO companies (symbol, name, is_active, created_at)
+				INSERT INTO companies (symbol, name, is_active, last_updated)
 				VALUES ($1, $1, true, NOW())
 				RETURNING company_id
 				`,

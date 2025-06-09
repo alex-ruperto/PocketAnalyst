@@ -21,6 +21,16 @@ func NewStockController(stockService *services.StockService) *StockController {
 	}
 }
 
+func (sc *StockController) HandleHealthCheckRequest(w http.ResponseWriter, r *http.Request) {
+	// Only allow GET requests
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Return success response
+}
+
 // HandleStockFetchRequest handles requests to fetch and store new stock data
 func (sc *StockController) HandleStockFetchRequest(w http.ResponseWriter, r *http.Request) {
 	// Only allow POST requests

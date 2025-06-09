@@ -84,20 +84,3 @@ def add_technical_indicators(df: pd.DataFrame) -> pd.DataFrame:
     result_df['returns_5d'] = result_df['close'].pct_change(5)
     
     return result_df
-
-if __name__ == "__main__":
-    response = requests.get("http://localhost:8080/api/stocks/get?symbol=AAPL&start_date=2006-01-02&end_date=2025-01-02")
-    data = response.json()
-
-    # Convert JSON data to a dataframe
-    df = pd.DataFrame(data)
-
-    if 'date' in df.columns:
-        df['date'] = pd.to_datetime(df['date'])
-        df.set_index('date', inplace=True)
-
-    result_df = add_technical_indicators(df)
-
-    print("First 200 rows with technical indicators:")
-    print(result_df.head(200))
-

@@ -96,6 +96,7 @@ func (app *App) setupRoutes() error {
 	// Register routes with middleware
 	app.Router.HandleFunc("/api/stocks/fetch", app.withMiddleware(stockController.HandleStockFetchRequest))
 	app.Router.HandleFunc("/api/stocks/get", app.withMiddleware(stockController.HandleStockHistoryRequest))
+	app.Router.HandleFunc("")
 
 	log.Println("Routes configured successfully")
 	return nil

@@ -29,6 +29,12 @@ func (sc *StockController) HandleHealthCheckRequest(w http.ResponseWriter, r *ht
 	}
 
 	// Return success response
+	response := "Health check received. Success!"
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
+	}
 }
 
 // HandleStockFetchRequest handles requests to fetch and store new stock data
@@ -38,7 +44,6 @@ func (sc *StockController) HandleStockFetchRequest(w http.ResponseWriter, r *htt
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-
 	// Parse requset parameters
 	symbol := r.URL.Query().Get("symbol")
 	if symbol == "" {

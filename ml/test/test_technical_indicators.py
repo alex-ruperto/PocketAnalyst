@@ -12,7 +12,7 @@ class TestTechnicalIndicators:
     Integration tests for technical indicators with Go API backend
     """
 
-    BASE_URL = "http://localhost:8080"
+    BASE_URL = "http://localhost:8080/api/stocks"
 
     def test_api_connection(self):
         """

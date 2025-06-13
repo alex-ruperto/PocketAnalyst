@@ -35,8 +35,10 @@ func main() {
 }
 
 func loadConfig() *app.Config {
+	dbURL := getEnvWithDefault("DATABASE_URL", "postgres://localhost/pocketanalyst?sslmode=disable")
+
 	return &app.Config{
-		DatabaseURL:           getEnvWithDefault("DATABASE_URL", "postgres://localhost/pocketanalyst?sslmode=disable"),
+		DatabaseURL:           dbURL,
 		AlphaVantageAPIKey:    getEnvWithDefault("ALPHA_VANTAGE_API_KEY", ""),
 		AlphaVantageBaseURL:   getEnvWithDefault("ALPHA_VANTAGE_BASE_URL", "https://www.alphavantage.co/query"),
 		Port:                  getEnvWithDefault("PORT", "8080"),

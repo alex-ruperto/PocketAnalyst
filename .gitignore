@@ -9,6 +9,7 @@
 .env.development
 .env.test
 .env.production
+.env.template
 *.key
 *.pem
 *.p12

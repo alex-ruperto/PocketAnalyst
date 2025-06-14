@@ -1,36 +1,29 @@
 package clients
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"pocketanalyst/internal/models"
-	"pocketanalyst/pkg/errors/client_errors"
 	"sort"
 	"strconv"
 	"time"
 )
 
+// AlphaVantageClient implements the StockDataClient interface for the Alpha Vantage API.
+// It embeds BaseClient to reuse common HTTP functionality while also providing Alpha Vantage-specific
+// data parsing and URL construction.
 type AlphaVantageClient struct {
-	BaseURL string       // API base URL
-	APIKey  string       // API key for authentication
-	Client  *http.Client // HTTP client with timeouts
+	*BaseClient // Embedded struct provides all Base HTTP Functionality.
 }
 
 func NewAlphaVantageClient(baseURL, apiKey string) *AlphaVantageClient {
 	return &AlphaVantageClient{
-		BaseURL: baseURL,
-		APIKey:  apiKey,
-		Client: &http.Client{
-			Timeout: 30 * time.Second,
-		},
+		BaseClient: NewBaseClient(baseURL, apiKey),
 	}
 }
 
 // Fetch daily stock prices from Alpha Vantage
 // Alpha Vantage API documentation https://www.alphavantage.co/documentation/
-func (avc *AlphaVantageClient) FetchDailyPricesFromAPI(symbol string) ([]*models.Stock, error) {
+func (avc *AlphaVantageClient) FetchDaily(symbol string) ([]*models.Stock, error) {
 	// Construct URL with required parameters
 	// TIME_SERIES_DAILY_ADJUSTED returns daily adjusted time series
 	// outputsize=compact returns the latest 100 data points
@@ -38,37 +31,23 @@ func (avc *AlphaVantageClient) FetchDailyPricesFromAPI(symbol string) ([]*models
 	url := fmt.Sprintf("%s?function=TIME_SERIES_DAILY&symbol=%s&outputsize=full&apikey=%s",
 		avc.BaseURL, symbol, avc.APIKey)
 
-	// Make HTTP request. Return a HTTPRequestError if it fails.
-	resp, err := avc.Client.Get(url)
+	// Use the shared HTTP Request logic from BaseClient
+	response, err := avc.MakeRequest(url)
 	if err != nil {
-		return nil, client_errors.NewHTTPRequestError(url, err)
-	}
-	defer resp.Body.Close() // Ensure the response body is closed to prevent resource leaks.
-
-	// Check for successful HTTP response. Return a HTTPStatusError if it is not a successful response.
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, client_errors.NewHTTPStatusError(url, resp.StatusCode, string(body))
+		return nil, err
 	}
 
-	// Read response body
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, client_errors.NewResponseReadError(err)
+	// Check for Alpha Vantage-specific error messages.
+	if err := avc.CheckAPIError(response); err != nil {
+		return nil, err
 	}
 
-	// Parse the JSON response
-	var response map[string]any
-	// Unmarshal only needs to read body. We need to modify the original response so we pass response by reference here.
-	if err := json.Unmarshal(body, &response); err != nil {
-		return nil, client_errors.NewResponseParseError(err)
-	}
+	// Parse Alpha Vantage-specific response format
+	return avc.parseAlphaVantageResponse(response, symbol)
 
-	// Check for API error messages
-	if errorMsg, exists := response["Error Message"]; exists {
-		return nil, client_errors.NewAPIError(errorMsg.(string))
-	}
+}
 
+func (avc *AlphaVantageClient) parseAlphaVantageResponse(response map[string]any, symbol string) ([]*models.Stock, error) {
 	// Extract the time series data
 	timeSeriesKey := "Time Series (Daily)"
 	timeSeries, ok := response[timeSeriesKey].(map[string]any)

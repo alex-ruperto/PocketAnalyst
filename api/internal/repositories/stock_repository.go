@@ -115,7 +115,7 @@ func (sr *StockRepository) SaveStocksToDatabase(ctx context.Context, stocks []*m
 	for _, stock := range stocks {
 		// Source ID for Alpha Vantage (assuming it's 1)
 		// TODO: make this a more flexible implementation to dynamically select the correct source ID.
-		const sourceID = 1
+		const sourceID = 3
 
 		// Execute the prepared statement with values for this stock
 		// RETURNING price_id gives us back the auto-generated PK

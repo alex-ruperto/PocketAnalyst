@@ -13,23 +13,23 @@ import (
 
 // StockService handles business logic related to stock operations
 type StockService struct {
-	stockRepo   *repositories.StockRepository
-	alphaClient *clients.AlphaVantageClient
+	stockRepo *repositories.StockRepository
+	client    clients.StockDataClient
 }
 
 func NewStockService(
 	stockRepo *repositories.StockRepository,
-	alphaClient *clients.AlphaVantageClient,
+	client clients.StockDataClient,
 ) *StockService {
 	return &StockService{
-		stockRepo:   stockRepo,
-		alphaClient: alphaClient,
+		stockRepo: stockRepo,
+		client:    client,
 	}
 }
 
 func (s *StockService) SynchronizeStockData(ctx context.Context, symbol string) (int, error) {
-	// Fetch stock data from Alpha Vantage API
-	stocks, err := s.alphaClient.FetchDailyPricesFromAPI(symbol)
+	// Fetch stock data from chosen API
+	stocks, err := s.client.FetchDaily(symbol)
 	if err != nil {
 		return 0, errors.NewServiceError("Fetching stock data", err)
 	}

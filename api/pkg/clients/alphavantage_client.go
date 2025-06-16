@@ -21,6 +21,10 @@ func NewAlphaVantageClient(baseURL, apiKey string) *AlphaVantageClient {
 	}
 }
 
+func (avc *AlphaVantageClient) GetProviderName() string {
+	return "AlphaVantage"
+}
+
 // Fetch daily stock prices from Alpha Vantage
 // Alpha Vantage API documentation https://www.alphavantage.co/documentation/
 func (avc *AlphaVantageClient) FetchDaily(symbol string) ([]*models.Stock, error) {
@@ -44,7 +48,6 @@ func (avc *AlphaVantageClient) FetchDaily(symbol string) ([]*models.Stock, error
 
 	// Parse Alpha Vantage-specific response format
 	return avc.parseAlphaVantageResponse(response, symbol)
-
 }
 
 func (avc *AlphaVantageClient) parseAlphaVantageResponse(response map[string]any, symbol string) ([]*models.Stock, error) {

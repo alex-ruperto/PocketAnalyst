@@ -1,63 +1,97 @@
 package clients
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"pocketanalyst/internal/models"
-	"pocketanalyst/pkg/errors/client_errors"
-	"sort"
 	"strconv"
 	"time"
 )
 
 type FMPClient struct {
-	BaseURL string       // API base URL
-	APIKey  string       // API key for authentication
-	Client  *http.Client // HTTP client with timeouts
+	*BaseClient // Embed BaseClient functionality into FMPClient
 }
 
 func NewFMPClient(baseURL, apiKey string) *FMPClient {
 	return &FMPClient{
-		BaseURL: baseURL,
-		APIKey:  apiKey,
-		Client: &http.Client{
-			Timeout: 30 * time.Second,
-		},
+		BaseClient: NewBaseClient(baseURL, apiKey),
 	}
 }
 
-func (fmpc *FMPClient) FetchDailyPricesFromFMP(symbol string) ([]*models.Stock, error) {
-	url := fmt.Sprintf("%s/full?symbol=%s&apikey=%s", fmpc.BaseURL, symbol, fmpc.APIKey)
+func (fmpc *FMPClient) GetProviderName() string {
+	return "FMP"
+}
 
-	// Make the HTTP Request. Return HTTPRequestErorr if it fails.
-	resp, err := fmpc.Client.Get(url)
+func (fmpc *FMPClient) FetchDaily(symbol string) ([]*models.Stock, error) {
+	url := fmt.Sprintf("%s/stable/historical-price-eod/full?symbol=%s&apikey=%s",
+		fmpc.BaseURL, symbol, fmpc.APIKey)
+
+	// Use the shared HTTP Request logic from BaseClient
+	dailyData, err := fmpc.MakeArrayRequest(url)
 	if err != nil {
-		return nil, client_errors.NewHTTPRequestError(url, err)
+		return nil, err
 	}
 
-	// Ensure response body is closed to prevent a resource leak.
-	defer resp.Body.Close()
-
-	// Check to see that the HTTP response was successful. HTTPStatusError if it was not a successful response.
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, client_errors.NewHTTPStatusError(url, resp.StatusCode, string(body))
+	// Check for FMP-specific error messages.
+	if err := fmpc.CheckArrayAPIError(dailyData); err != nil {
+		return nil, err
 	}
 
-	// Read response body. Return a ResponseReadError if it fails.
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, client_errors.NewResponseReadError(err)
+	// Convert to Stock models
+	stocks := make([]*models.Stock, 0, 5)
+	for i, dayData := range dailyData {
+		if i >= 5 { // Only get first 5 records
+			break
+		}
+
+		// Parse date
+		dateStr, ok := dayData["date"].(string)
+		if !ok {
+			continue // Skip if no valid date
+		}
+
+		date, err := time.Parse("2006-01-02", dateStr)
+		if err != nil {
+			continue // Skip if date parsing fails
+		}
+
+		// Create Stock model
+		stock := &models.Stock{
+			Symbol:           symbol,
+			Date:             date,
+			OpenPrice:        getFloat(dayData, "open"),
+			HighPrice:        getFloat(dayData, "high"),
+			LowPrice:         getFloat(dayData, "low"),
+			ClosePrice:       getFloat(dayData, "close"),
+			AdjustedClose:    getFloat(dayData, "close"), // FMP doesn't provide adjusted_close in this endpoint
+			Volume:           getFloat(dayData, "volume"),
+			DividendAmount:   0, // Not available in this endpoint
+			SplitCoefficient: 1, // Not available in this endpoint
+			DataSource:       fmpc.GetProviderName(),
+			LastUpdated:      time.Now(),
+		}
+
+		stocks = append(stocks, stock)
 	}
 
-	// Parse JSON Response and store it into a map.
-	var response map[string]any
+	return stocks, nil
+}
 
-	// Use unmarshal to read the body. Pass response by reference here to modify the original.
-	if err := json.Unmarshal(body, &response); err != nil {
-		return nil, client_errors.NewResponseParseError(err)
+// getFloat handles handles FMP's numeric format
+func getFloat(data map[string]any, key string) float64 {
+	if val, ok := data[key]; ok {
+		switch v := val.(type) {
+		case float64:
+			return v
+		case int:
+			return float64(v)
+		case int64:
+			return float64(v)
+		case string:
+			// Fallback to string parsing if FMP sometimes returns strings
+			if f, err := strconv.ParseFloat(v, 64); err == nil {
+				return f
+			}
+		}
 	}
-
+	return 0.0
 }

@@ -39,8 +39,8 @@ func loadConfig() *app.Config {
 
 	return &app.Config{
 		DatabaseURL:           dbURL,
-		AlphaVantageAPIKey:    getEnvWithDefault("ALPHA_VANTAGE_API_KEY", ""),
-		AlphaVantageBaseURL:   getEnvWithDefault("ALPHA_VANTAGE_BASE_URL", "https://www.alphavantage.co/query"),
+		FMPAPIKey:             getEnvWithDefault("FMP_API_KEY", ""),
+		FMPBaseURL:            getEnvWithDefault("FMP_BASE_URL", "https://financialmodelingprep.com"),
 		Port:                  getEnvWithDefault("PORT", "8080"),
 		ReadTimeout:           time.Duration(getEnvAsInt("READ_TIMEOUT_SECONDS", 30)) * time.Second,
 		WriteTimeout:          time.Duration(getEnvAsInt("WRITE_TIMEOUT_SECONDS", 30)) * time.Second,

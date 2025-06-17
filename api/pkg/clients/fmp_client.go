@@ -37,12 +37,8 @@ func (fmpc *FMPClient) FetchDaily(symbol string) ([]*models.Stock, error) {
 	}
 
 	// Convert to Stock models
-	stocks := make([]*models.Stock, 0, 5)
-	for i, dayData := range dailyData {
-		if i >= 5 { // Only get first 5 records
-			break
-		}
-
+	stocks := make([]*models.Stock, 0, len(dailyData))
+	for _, dayData := range dailyData {
 		// Parse date
 		dateStr, ok := dayData["date"].(string)
 		if !ok {

@@ -23,8 +23,8 @@ type App struct {
 // Config holds all application configuration
 type Config struct {
 	DatabaseURL           string
-	AlphaVantageAPIKey    string
-	AlphaVantageBaseURL   string
+	FMPAPIKey             string
+	FMPBaseURL            string
 	Port                  string
 	ReadTimeout           time.Duration
 	WriteTimeout          time.Duration
@@ -81,14 +81,18 @@ func (app *App) setupRoutes() error {
 	// Initalize repositories
 	stockRepo := repositories.NewStockRepository(app.DB)
 
-	// Initialize external clients
-	alphaClient := clients.NewAlphaVantageClient(
-		app.Config.AlphaVantageBaseURL,
-		app.Config.AlphaVantageAPIKey,
-	)
+	// Initialize client factory and register providers
+	factory := clients.NewClientFactory()
+	factory.RegisterProvider("fmp", app.Config.FMPBaseURL, app.Config.FMPAPIKey)
+
+	// Create FMP Client using factory
+	client, err := factory.CreateClient("fmp")
+	if err != nil {
+		return err
+	}
 
 	// Initialize services
-	stockService := services.NewStockService(stockRepo, alphaClient)
+	stockService := services.NewStockService(stockRepo, client)
 
 	// Initialize controllers
 	stockController := controllers.NewStockController(stockService)

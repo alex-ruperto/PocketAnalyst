@@ -44,6 +44,7 @@ func (sc *StockController) HandleStockFetchRequest(w http.ResponseWriter, r *htt
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+
 	// Parse requset parameters
 	symbol := r.URL.Query().Get("symbol")
 	if symbol == "" {
@@ -118,6 +119,21 @@ func (sc *StockController) HandleStockHistoryRequest(w http.ResponseWriter, r *h
 	// Return data as JSON
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(stocks); err != nil {
+		http.Error(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (sc *StockController) HandleGetDistrinctSymbolRequest(w http.ResponseWriter, r *http.Request) {
+	// Get all distinct symbols from the service layer
+	symbols, err := sc.stockService.GetDistinctSymbols(r.Context())
+	if err != nil {
+		sc.handleServiceError(w, err)
+		return
+	}
+
+	// Return data as JSON
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(symbols); err != nil {
 		http.Error(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
 	}
 }

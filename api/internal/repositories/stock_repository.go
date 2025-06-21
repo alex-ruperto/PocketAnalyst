@@ -212,7 +212,7 @@ func (sr *StockRepository) RetrieveStocksFromDatabase(
 			&lastUpdated,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan stock price row: %w", err)
+			return nil, fmt.Errorf("failed to scan stock p:qrice row: %w", err)
 		}
 
 		s.LastUpdated = lastUpdated
@@ -228,4 +228,32 @@ func (sr *StockRepository) RetrieveStocksFromDatabase(
 	}
 
 	return stocks, nil
+}
+
+func (sr *StockRepository) GetAvailableStocks(ctx context.Context) ([]*string, error) {
+	// Query to return all distinct symbols from the stock_prices table
+	query := `SELECT DISTINCT symbol FROM stock_prices`
+
+	rows, err := sr.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query stock prices: %w", err)
+	}
+
+	// Always close rows when done to prevent resource leaks
+	defer rows.Close()
+
+	var symbols []*string
+	for rows.Next() {
+		var symbol string
+		err := rows.Scan(
+			&symbol,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to scan a symbol: %w", err)
+		}
+
+		symbols = append(symbols, &symbol)
+	}
+
+	return symbols, nil
 }

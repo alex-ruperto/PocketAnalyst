@@ -71,6 +71,16 @@ func (s *StockService) GetStockHistory(
 	return stocks, nil
 }
 
+func (s *StockService) GetDistinctSymbols(ctx context.Context) ([]*string, error) {
+	// Get distinct symbols from the database using the stock repository
+	symbols, err := s.stockRepo.GetAvailableSymbols(ctx)
+	if err != nil {
+		return nil, errors.NewServiceError("Getting distinct symbols", err)
+	}
+	return symbols, nil
+
+}
+
 func (s *StockService) validateInput(symbol string, startDate, endDate time.Time) error {
 	if strings.TrimSpace(symbol) == "" {
 		return errors.NewModelValidationError(

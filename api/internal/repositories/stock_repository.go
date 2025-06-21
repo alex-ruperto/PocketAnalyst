@@ -230,7 +230,7 @@ func (sr *StockRepository) RetrieveStocksFromDatabase(
 	return stocks, nil
 }
 
-func (sr *StockRepository) GetAvailableStocks(ctx context.Context) ([]*string, error) {
+func (sr *StockRepository) GetAvailableSymbols(ctx context.Context) ([]*string, error) {
 	// Query to return all distinct symbols from the stock_prices table
 	query := `SELECT DISTINCT symbol FROM stock_prices`
 

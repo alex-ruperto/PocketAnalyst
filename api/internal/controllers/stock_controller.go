@@ -123,7 +123,7 @@ func (sc *StockController) HandleStockHistoryRequest(w http.ResponseWriter, r *h
 	}
 }
 
-func (sc *StockController) HandleGetDistrinctSymbolRequest(w http.ResponseWriter, r *http.Request) {
+func (sc *StockController) HandleGetDistinctSymbolRequest(w http.ResponseWriter, r *http.Request) {
 	// Get all distinct symbols from the service layer
 	symbols, err := sc.stockService.GetDistinctSymbols(r.Context())
 	if err != nil {

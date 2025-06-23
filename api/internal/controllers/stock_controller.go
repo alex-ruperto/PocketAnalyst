@@ -124,6 +124,11 @@ func (sc *StockController) HandleStockHistoryRequest(w http.ResponseWriter, r *h
 	}
 }
 
+func (sc *StockController) HandleMultipleStockHistoryRequest(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
 func (sc *StockController) HandleGetDistinctSymbolRequest(w http.ResponseWriter, r *http.Request) {
 	// Get all distinct symbols from the service layer
 	symbols, err := sc.stockService.GetDistinctSymbols(r.Context())

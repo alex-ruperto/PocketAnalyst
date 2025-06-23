@@ -106,7 +106,7 @@ class StockDataPipeline:
 
 
 
-    def get_available_symbols(self) -> List[str]:
+    def get_distinct_symbols(self) -> List[str]:
         """
         Fetch all distinct symbols available in the database.
 
@@ -156,5 +156,6 @@ class StockDataPipeline:
 
         # If all retries fail, raise StockDataError
         raise StockDataError(f"All {self.max_retries} attempts failed to fetch all distinct symbols.")
+
 
 

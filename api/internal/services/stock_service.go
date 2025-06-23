@@ -71,6 +71,41 @@ func (s *StockService) GetStockHistory(
 	return stocks, nil
 }
 
+func (s *StockService) GetMultipleStockHistory(
+	ctx context.Context,
+	symbols []string,
+	startDateStr, endDateStr string,
+) (map[string][]*models.Stock, error) {
+	for _, symbol := range symbols {
+		if err := s.validateInput(symbol, time.Time{}, time.Time{}); err != nil {
+			return nil, fmt.Errorf("invalid symbol %s: %w", symbol, err)
+		}
+	}
+
+	// Parse dates
+	startDate, err := time.Parse("2006-01-02", startDateStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid start date format: %w", err)
+	}
+
+	endDate, err := time.Parse("2006-01-02", endDateStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid end date format: %w", err)
+	}
+
+	// Validate date range
+	if startDate.After(endDate) {
+		return nil, errors.NewModelValidationError(
+			"StockService",
+			"date_range",
+			"start date cannot be after end date",
+		)
+	}
+
+	// Get data from repository
+	return s.stockRepo.RetrieveMultipleStocksFromDatabase(ctx, symbols, startDate, endDate)
+}
+
 func (s *StockService) GetDistinctSymbols(ctx context.Context) ([]*string, error) {
 	// Get distinct symbols from the database using the stock repository
 	symbols, err := s.stockRepo.GetAvailableSymbols(ctx)

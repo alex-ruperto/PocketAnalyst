@@ -21,6 +21,7 @@ func NewStockController(stockService *services.StockService) *StockController {
 	}
 }
 
+// HandleHealthCheckRequest handles Health Check requests.
 func (sc *StockController) HandleHealthCheckRequest(w http.ResponseWriter, r *http.Request) {
 	// Only allow GET requests
 	if r.Method != http.MethodGet {

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"pocketanalyst/internal/models"
 	"time"
+
+	"github.com/lib/pq"
 )
 
 // StockRepository handles database operations for stocks
@@ -166,14 +168,14 @@ func (sr *StockRepository) RetrieveStocksFromDatabase(
 ) ([]*models.Stock, error) {
 	// SQL query with JOIN to get data source name
 	query := `
-		SELECT sp.price_id, sp.company_id, sp.symbol, sp.date, 
-		       sp.open_price, sp.high_price, sp.low_price, sp.close_price, 
-		       sp.adjusted_close, sp.volume, sp.dividend_amount, 
-		       sp.split_coefficient, ds.source_name, sp.last_updated
-		FROM stock_prices sp
-		JOIN data_sources ds ON sp.source_id = ds.source_id
-		WHERE sp.symbol = $1 AND sp.date BETWEEN $2 AND $3
-		ORDER BY sp.date DESC
+	SELECT sp.price_id, sp.company_id, sp.symbol, sp.date, 
+	sp.open_price, sp.high_price, sp.low_price, sp.close_price, 
+	sp.adjusted_close, sp.volume, sp.dividend_amount, 
+	sp.split_coefficient, ds.source_name, sp.last_updated
+	FROM stock_prices sp
+	JOIN data_sources ds ON sp.source_id = ds.source_id
+	WHERE sp.symbol = $1 AND sp.date BETWEEN $2 AND $3
+	ORDER BY sp.date DESC
 	`
 
 	// Execute the query with parameters
@@ -228,6 +230,75 @@ func (sr *StockRepository) RetrieveStocksFromDatabase(
 	}
 
 	return stocks, nil
+}
+
+// RetrieveMultipleStocksFromDatabase retrieves stock data for multiple symbols within a date range
+func (sr *StockRepository) RetrieveMultipleStocksFromDatabase(
+	ctx context.Context,
+	symbols []string,
+	startDate, endDate time.Time,
+) (map[string][]*models.Stock, error) {
+	// Build SQL query with IN clause for multiple symbols
+	query := `
+		SELECT sp.price_id, sp.company_id, sp.symbol, sp.date, 
+			sp.open_price, sp.high_price, sp.low_price, sp.close_price, 
+			sp.adjusted_close, sp.volume, sp.dividend_amount, 
+			sp.split_coefficient, ds.source_name, sp.last_updated
+		FROM stock_prices sp
+		JOIN data_sources ds ON sp.source_id = ds.source_id
+		WHERE sp.symbol = ANY($1) AND sp.date BETWEEN $2 and $3
+		ORDER BY sp.symbol, sp.date DESC
+	`
+
+	// Convert symbols slice to pq.Array for PostgreSQL
+	rows, err := sr.db.QueryContext(ctx, query, pq.Array(symbols), startDate, endDate)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query multiple stocks: %w", err)
+	}
+	defer rows.Close()
+
+	// Group results by symbol
+	results := make(map[string][]*models.Stock) // symbol: array of *models.Stock
+
+	// Init empty slices for all requested symbols
+	for _, symbol := range symbols {
+		results[symbol] = []*models.Stock{}
+	}
+
+	// Process each row
+	for rows.Next() {
+		var s models.Stock
+		var lastUpdated time.Time
+
+		err := rows.Scan(
+			&s.PriceID,
+			&s.CompanyID,
+			&s.Symbol,
+			&s.Date,
+			&s.OpenPrice,
+			&s.HighPrice,
+			&s.LowPrice,
+			&s.ClosePrice,
+			&s.AdjustedClose,
+			&s.Volume,
+			&s.DividendAmount,
+			&s.SplitCoefficient,
+			&s.DataSource,
+			&lastUpdated,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan stock price row: %w", err)
+		}
+
+		s.LastUpdated = lastUpdated
+		results[s.Symbol] = append(results[s.Symbol], &s)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating stock price rows: %w", err)
+	}
+
+	return results, nil
 }
 
 func (sr *StockRepository) GetAvailableSymbols(ctx context.Context) ([]*string, error) {

@@ -1,243 +1,237 @@
 # PocketAnalyst
+*The honest approach to ML in finance.*
 
-PocketAnalyst is an app meant to provide predictions on stock prices based on
-historical data, technical analysis, fundamentals, and broad economic data.
+## What is PocketAnalyst?
 
-## Architecture
+PocketAnalyst is a probabilistic stock analysis tool that tells you what you actually need to know: **the probability of different price movements at different time horizons**, based on historical patterns.
 
-PocketAnalyst uses MVC (Model-View-Controller) architecture.
+Instead of claiming to predict the future with false precision, PocketAnalyst gives you honest, probabilistic insights:
 
-### Database Schema
+- *"Based on technical patterns, there's a 35% chance AAPL gains 5%+ in the next 7 days"*
+- *"Based on fundamental metrics, there's a 60% chance of 15%+ gains over the next 6 months"*
+- *"Based on recent sentiment, there's a 25% chance of 3%+ downside in the next week"*
 
-#### Companies Table
+## The Philosophy
 
-Stores basic information about companies whose stocks we're tracking.
-Acts as a master reference table.
+### What We Believe
+- **Markets are uncertain** - anyone claiming high accuracy is probably lying
+- **Different factors matter at different timeframes** - technical analysis for days, fundamentals for months
+- **Probabilities are more honest than predictions** - 30% chance of gain is better than "will go up 2.3%"
+- **Humans should make decisions** - we provide information, you decide what to do
 
-- company_id: Primary key, uniquely identifies each company
-- symbol: Stock ticker symbol (e.g., "AAPL", "MSFT")
-- name: Full company name
-- sector: Business sector (e.g., "Technology", "Healthcare")
-- industry: Specific industry within the sector
-- exchange: Stock exchange where the company is listed (e.g., "NASDAQ")
-- is_active: Boolean flag to indicate if we're actively tracking this company
-- created_at: Timestamp when the record was created
+### What We Don't Do
+- ❌ Automate trading decisions
+- ❌ Promise stunning accuracy  
+- ❌ Replace human judgment
+- ❌ Guarantee profits
 
-#### Data Sources
+### What We Do
+- ✅ Analyze historical patterns across multiple domains
+- ✅ Provide probabilistic insights for different time horizons
+- ✅ Acknowledge uncertainty honestly
+- ✅ Help you make better-informed decisions
 
-Stores configuration information for external data providers.
+## How It Works
 
-- source_id: Primary key for each data source configuration
-- source_name: Name of the data provider (e.g., "AlphaVantage", "YahooFinance")
-- source_type: Type of data provided (e.g., "PRICE", "FUNDAMENTAL", "SENTIMENT")
-- base_url: Base URL for API calls
-- rate_limit_per_minute: API rate limit per minute
-- rate_limit_per_day: API rate limit per day
-- config_parameters: JSON containing non-sensitive configuration parameters
-- is_active: Whether this data source is active
-- created_at: Timestamp when the record was created
+### Multi-Domain Analysis
 
-#### Data Fetch Jobs
+PocketAnalyst analyzes four different domains of market information:
 
-Tracks scheduled data fetching operations.
+#### 🔧 Technical Analysis (1-7 days)
+- **What**: Price patterns, momentum indicators, volume analysis
+- **Good for**: Short-term trading opportunities, entry/exit timing
+- **Example**: *"Chart patterns suggest 40% chance of +3% move in next 3 days"*
 
-- job_id: Primary key for each fetch job
-- source_id: Foreign key to the data_sources table
-- entity_type: What type of entity to fetch data for (e.g., "SYMBOL", "SECTOR", "MARKET")
-- entity_value: The actual symbol, sector name, etc.
-- data_type: Type of data to fetch (e.g., "PRICE", "FUNDAMENTALS", "SENTIMENT")
-- frequency: How often to fetch (e.g., "daily", "weekly", "monthly")
-- parameters: JSON containing additional parameters for the job
-- last_execution: When job was last executed
-- last_success: When job last completed successfully
-- next_scheduled: When job should next run
-- status: Current job status (e.g., "PENDING", "RUNNING", "SUCCESS", "FAILED")
-- is_active: Whether this job is active
-- created_at: Timestamp when the record was created
+#### 📰 Sentiment Analysis (1-30 days)  
+- **What**: News sentiment, social media buzz, analyst opinions
+- **Good for**: Event-driven moves, earnings reactions
+- **Example**: *"Positive news flow indicates 45% chance of +5% gain over next 2 weeks"*
 
-#### Stock Prices
+#### 🏢 Fundamental Analysis (30-365+ days)
+- **What**: Financial metrics, valuation ratios, business performance  
+- **Good for**: Long-term investment decisions, value identification
+- **Example**: *"Valuation metrics suggest 65% chance of +20% gain over next year"*
 
-Stores raw historical stock price data fetched from external APIs.
+#### 🌍 Macroeconomic Analysis (7-90 days)
+- **What**: Interest rates, economic indicators, sector rotation
+- **Good for**: Market timing, sector allocation, risk management
+- **Example**: *"Economic conditions favor 55% chance of +10% sector outperformance over next quarter"*
 
-- price_id: Primary key for each daily stock record
-- company_id: Foreign key linking to the companies table
-- symbol: Stock ticker symbol (duplicated for query convenience)
-- date: The trading date for this price record
-- open_price: Opening price for the day
-- high_price: Highest price during the day
-- low_price: Lowest price during the day
-- close_price: Closing price for the day
-- adjusted_close: Closing price adjusted for splits and dividends
-- volume: Number of shares traded
-- dividend_amount: Amount of dividend issued on this date
-- split_coefficient: Stock split factor on this date
-- source_id: Foreign key linking to the data_sources table
-- created_at: Timestamp when the record was created
+### Nested Probability Targets
 
-#### Technical Indicators
+For each domain and time horizon, we calculate probabilities of hitting different return thresholds:
 
-Stores calculated technical indicators based on the raw stock data.
-These are used as features for ML models.
+```
+7-Day Technical Analysis for AAPL:
+├── 📈 Upside Probabilities
+│   ├── +1% gain: 45% chance
+│   ├── +3% gain: 25% chance  
+│   ├── +5% gain: 12% chance
+│   └── +10% gain: 3% chance
+└── 📉 Downside Probabilities
+    ├── -1% loss: 35% chance
+    ├── -3% loss: 18% chance
+    ├── -5% loss: 8% chance
+    └── -10% loss: 2% chance
+```
 
-- indicator_id: Primary key for each indicator record
-- company_id: Foreign key linking to the companies table
-- symbol: Stock ticker symbol (duplicated for query convenience)
-- date: The date for this indicator value
-- indicator_type: Type of indicator (e.g., "SMA", "EMA", "BOLLINGER", "RSI")
-- period: Time period for the indicator (e.g., 14 days for a 14-day RSI)
-- value: Primary indicator value
-- upper_band: Upper band value (for indicators like Bollinger Bands)
-- lower_band: Lower band value (for indicators like Bollinger Bands)
-- created_at: Timestamp when this indicator was calculated
+### Adaptive Learning
 
-#### Fundamental Data
+- **Weekly retraining** keeps models current with market conditions
+- **Multiple time windows** balance adaptation with stability  
+- **Performance tracking** monitors prediction calibration over time
+- **Regime detection** flags when markets behave unusually
 
-Stores financial data like income statements, balance sheets, and key metrics.
+## Technology Stack
 
-- fundamental_id: Primary key for each fundamental data record
-- company_id: Foreign key linking to the companies table
-- symbol: Stock ticker symbol (duplicated for query convenience)
-- date: Date of the report/data
-- report_type: Type of report (e.g., "QUARTERLY", "ANNUAL")
-- data_type: Kind of data (e.g., "INCOME_STATEMENT", "BALANCE_SHEET", "CASH_FLOW", "RATIOS")
-- data: JSON containing all financial metrics
-- source_id: Foreign key linking to the data_sources table
-- created_at: Timestamp when the record was created
+### Backend (Go)
+- **REST API** for data retrieval and storage
+- **PostgreSQL** for historical stock data and predictions
+- **Multi-provider data ingestion** (FMP, Alpha Vantage, others)
+- **Robust error handling** and rate limiting
 
-#### News Events
+### ML Pipeline (Python)
+- **Multi-domain feature engineering** using pandas and pandas_ta
+- **Ensemble models** combining Random Forest, XGBoost, and linear methods
+- **Probabilistic predictions** with proper uncertainty quantification
+- **Automated retraining** with performance validation
 
-Tracks significant news and events that might impact stock prices.
+### Data Sources
+- **Stock prices**: Financial Modeling Prep, Alpha Vantage
+- **Fundamentals**: Quarterly earnings and financial statements  
+- **Sentiment**: News APIs and social media feeds (planned)
+- **Macro**: Economic indicators and Fed data (planned)
 
-- event_id: Primary key for each event
-- company_id: Foreign key linking to the companies table (NULL for market-wide events)
-- event_type: Type of event (e.g., "NEWS", "EARNINGS", "DIVIDEND", "SPLIT")
-- event_date: When the event occurred
-- title: Event title or headline
-- content: Full event content or description
-- source: Where the event information came from
-- url: Link to original content
-- sentiment_score: Pre-calculated sentiment (-1 to 1)
-- source_id: Foreign key linking to the data_sources table
-- created_at: Timestamp when the record was created
+## Quick Start
 
-#### Sentiment Data
+### Prerequisites
+- Go 1.24+
+- Python 3.11+
+- PostgreSQL 12+
+- 16GB+ RAM (48GB recommended for training)
 
-Stores sentiment analysis from social media, news, etc.
+### Setup
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/PocketAnalyst.git
+cd PocketAnalyst
 
-- sentiment_id: Primary key for each sentiment record
-- company_id: Foreign key linking to the companies table
-- symbol: Stock ticker symbol (duplicated for query convenience)
-- date: Date of the sentiment data
-- source_type: Where sentiment was measured (e.g., "TWITTER", "REDDIT", "NEWS", "GOOGLE_TRENDS")
-- sentiment_score: Sentiment rating (-1.0 to 1.0)
-- volume: Number of mentions/posts
-- trending_keywords: JSON containing keywords and their frequencies
-- raw_data: Optional JSON storage for source data
-- source_id: Foreign key linking to the data_sources table
-- created_at: Timestamp when the record was created
+# Set up the database
+psql -f database/schema.sql
 
-#### Feature Sets
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your API keys and database URL
 
-Defines collections of features for use in ML models.
+# Start the Go API
+cd api
+go run server/main.go
 
-- feature_set_id: Primary key for each feature set
-- name: Name of the feature set
-- description: Description of what this feature set is used for
-- feature_definitions: JSON defining how to calculate each feature
-- created_at: Timestamp when the record was created
-- updated_at: Timestamp when the record was last updated
+# Set up Python environment
+cd ../ml
+pip install -r requirements.txt
 
-#### Feature Data
+# Run initial training
+python -m training.train_models
+```
 
-Stores pre-computed features for ML models.
+### Basic Usage
+```bash
+# Fetch data for a symbol
+curl "http://localhost:8080/api/stocks/fetch?symbol=AAPL"
 
-- feature_data_id: Primary key for each feature data record
-- feature_set_id: Foreign key linking to the feature_sets table
-- company_id: Foreign key linking to the companies table
-- symbol: Stock ticker symbol (duplicated for query convenience)
-- date: Date for these feature values
-- features: JSON mapping feature names to values
-- created_at: Timestamp when the record was created
+# Get predictions
+curl "http://localhost:8080/api/ml/predictions?symbol=AAPL"
 
-#### ML Models
+# Trigger model retraining
+python -m training.retrain_models
+```
 
-Stores information about machine learning models.
+## Example Output
 
-- model_id: Primary key for each model
-- name: Model name
-- model_type: Type of model (e.g., "LSTM", "RANDOM_FOREST", "XGBOOST")
-- target_type: Type of prediction (e.g., "CLASSIFICATION", "REGRESSION")
-- target_variable: What we're predicting (e.g., "PRICE_DIRECTION", "PRICE", "VOLATILITY")
-- feature_set_id: Foreign key linking to the feature_sets table
-- parameters: JSON containing model hyperparameters and configuration
-- model_path: Path to stored model file/directory
-- is_active: Whether this model is active
-- created_at: Timestamp when the record was created
-- updated_at: Timestamp when the record was last updated
+```json
+{
+  "symbol": "AAPL",
+  "as_of": "2025-01-20T10:00:00Z",
+  "predictions": {
+    "technical_3d": {
+      "upside_probabilities": {
+        "gain_1pct": 0.42,
+        "gain_3pct": 0.23,
+        "gain_5pct": 0.11
+      },
+      "downside_probabilities": {
+        "loss_1pct": 0.31,
+        "loss_3pct": 0.16,
+        "loss_5pct": 0.07
+      },
+      "confidence": 0.68
+    },
+    "fundamental_90d": {
+      "upside_probabilities": {
+        "gain_5pct": 0.58,
+        "gain_10pct": 0.34,
+        "gain_20pct": 0.19
+      },
+      "downside_probabilities": {
+        "loss_5pct": 0.22,
+        "loss_10pct": 0.09,
+        "loss_20pct": 0.04
+      },
+      "confidence": 0.71
+    }
+  }
+}
+```
 
-#### Model Training History
+## Roadmap
 
-Tracks the history of machine learning model training sessions.
+### Phase 1: Core Technical Analysis ✅
+- Multi-stock data pipeline
+- Technical indicator features
+- Ensemble prediction models
+- Basic probability outputs
 
-- training_id: Primary key for each training session
-- model_id: Foreign key linking to the ml_models table
-- training_date: When the model was trained
-- training_dataset_start: Start date of training data
-- training_dataset_end: End date of training data
-- validation_dataset_start: Start date of validation data
-- validation_dataset_end: End date of validation data
-- training_accuracy: Accuracy on the training dataset
-- validation_accuracy: Accuracy on the validation dataset
-- metrics: JSON containing detailed metrics (precision, recall, etc.)
-- training_duration_seconds: How long the training took
-- notes: Any additional notes about this training session
-- created_at: Timestamp when the record was created
+### Phase 2: Multi-Domain Expansion 🚧  
+- Fundamental analysis integration
+- Sentiment analysis pipeline
+- Macroeconomic indicators
+- Domain-specific model optimization
 
-#### ML Predictions
+### Phase 3: Advanced Features 📋
+- Real-time prediction serving
+- Portfolio-level analysis
+- Advanced visualization dashboard
+- Mobile app for predictions
 
-Stores predictions generated by machine learning models.
+### Phase 4: Scale & Polish 📋
+- Cloud deployment infrastructure
+- High-frequency retraining
+- Advanced ensemble techniques
+- Professional API for institutions
 
-- prediction_id: Primary key for each prediction
-- model_id: Foreign key linking to the ml_models table
-- company_id: Foreign key linking to the companies table
-- symbol: Stock ticker symbol (duplicated for query convenience)
-- prediction_date: When the prediction was made
-- target_date: Future date being predicted
-- prediction_value: The predicted value
-- prediction_confidence: Model confidence (0-1)
-- extra_data: Additional prediction information
-- actual_value: The actual value once the target date arrives
-- accuracy_metric: How accurate the prediction was
-- created_at: Timestamp when the record was created
+## Contributing
 
-#### Job Execution Logs
+We welcome contributions that align with our philosophy of honest, probabilistic analysis:
 
-Tracks execution of system jobs for monitoring and debugging.
+- **Bug fixes** and performance improvements
+- **New data sources** for any of the four domains
+- **Model improvements** that enhance calibration
+- **Visualization tools** for probability displays
+- **Documentation** and educational content
 
-- log_id: Primary key for each log entry
-- job_id: Foreign key linking to the data_fetch_jobs table
-- job_type: Type of job (e.g., "DATA_FETCH", "FEATURE_CALCULATION", "MODEL_TRAINING")
-- start_time: When the job started
-- end_time: When the job ended
-- status: Job status (e.g., "RUNNING", "SUCCESS", "FAILED")
-- records_processed: Number of records processed
-- error_message: Error message if job failed
-- details: Additional job details
-- created_at: Timestamp when the record was created
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-## Machine Learning
+## License
 
-PocketAnalyst uses domain-specific ensemble architecture along with a weighting strategy
-to generate predictions. This helps specialize ML Model expertise and prevent overfitting.
+MIT License - see [LICENSE](LICENSE) for details.
 
-✅ = Implemented
-❌ = Not Implemented
+## Disclaimer
 
-- ❌ **Technical Model**: Masters chart patterns, support/resistance, momentum
-(1 to 7 days)
-- ❌ **Sentiment Model**: Captures news reactions, social media buzz, and
-event impacts (1 to 30 days)
-- ❌ **Macro Model**: Learns interest rate impacts, sector rotation, and market
-regimes (7 to 90 days)
-- ❌ **Fundamental Model**: Understands valuation, financial health, and earnings
-growth (30 to 365 days)
+PocketAnalyst is a research and educational tool. All predictions are probabilistic and based on historical patterns that may not repeat. Past performance does not guarantee future results. Always do your own research and consider your risk tolerance before making investment decisions.
+
+**This is not financial advice.**
+
+---
+
+*Built with the belief that honest uncertainty is better than false confidence.*

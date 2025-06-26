@@ -97,10 +97,12 @@ func (app *App) setupRoutes() error {
 	// Initialize controllers
 	stockController := controllers.NewStockController(stockService)
 
-	// Register routes with middleware
+	// Register route endpoints with middleware
 	app.Router.HandleFunc("/api/stocks/fetch", app.withMiddleware(stockController.HandleStockFetchRequest))
-	app.Router.HandleFunc("/api/stocks/get", app.withMiddleware(stockController.HandleStockHistoryRequest))
+	app.Router.HandleFunc("/api/stocks/get-stock", app.withMiddleware(stockController.HandleStockHistoryRequest))
+	app.Router.HandleFunc("/api/stocks/get-multiple", app.withMiddleware(stockController.HandleMultipleStockHistoryRequest))
 	app.Router.HandleFunc("/api/stocks/health", app.withMiddleware(stockController.HandleHealthCheckRequest))
+	app.Router.HandleFunc("/api/stocks/get-distinct-symbols", app.withMiddleware(stockController.HandleGetDistinctSymbolRequest))
 
 	log.Println("Routes configured successfully")
 	return nil

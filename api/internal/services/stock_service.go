@@ -76,13 +76,7 @@ func (s *StockService) GetMultipleStockHistory(
 	symbols []string,
 	startDateStr, endDateStr string,
 ) (map[string][]*models.Stock, error) {
-	for _, symbol := range symbols {
-		if err := s.validateInput(symbol, time.Time{}, time.Time{}); err != nil {
-			return nil, fmt.Errorf("invalid symbol %s: %w", symbol, err)
-		}
-	}
-
-	// Parse dates
+	// Parse dates FIRST, before validation
 	startDate, err := time.Parse("2006-01-02", startDateStr)
 	if err != nil {
 		return nil, fmt.Errorf("invalid start date format: %w", err)
@@ -100,6 +94,12 @@ func (s *StockService) GetMultipleStockHistory(
 			"date_range",
 			"start date cannot be after end date",
 		)
+	}
+
+	for _, symbol := range symbols {
+		if err := s.validateInput(symbol, startDate, endDate); err != nil {
+			return nil, fmt.Errorf("invalid symbol %s: %w", symbol, err)
+		}
 	}
 
 	// Get data from repository

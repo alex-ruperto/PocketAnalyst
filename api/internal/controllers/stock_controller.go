@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"pocketanalyst/internal/services"
 	"pocketanalyst/pkg/errors"
+	"strings"
 	"time"
 )
 
@@ -127,8 +128,47 @@ func (sc *StockController) HandleStockHistoryRequest(w http.ResponseWriter, r *h
 func (sc *StockController) HandleMultipleStockHistoryRequest(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Parse symbols parameter
+	symbolsParam := r.URL.Query().Get("symbols")
+	if symbolsParam == "" {
+		http.Error(w, "symbols parameter is required", http.StatusBadRequest)
+		return
+	}
+
+	// Parse comma-separated symbols and clean them
+	symbols := strings.Split(symbolsParam, ",")
+	for i, symbol := range symbols {
+		symbols[i] = strings.TrimSpace(strings.ToUpper(symbol))
+	}
+
+	startDate := r.URL.Query().Get("start_date")
+	endDate := r.URL.Query().Get("end_date")
+
+	// Set defaults if not provided
+	if endDate == "" {
+		endDate = time.Now().Format("2006-01-02")
+	}
+	if startDate == "" {
+		startDate = time.Now().AddDate(0, 0, -30).Format("2006-01-02")
+	}
+
+	// Get stock history from service
+	stocksData, err := sc.stockService.GetMultipleStockHistory(r.Context(), symbols, startDate, endDate)
+	if err != nil {
+		sc.handleServiceError(w, err)
+		return
+	}
+
+	// Return data as JSON
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(stocksData); err != nil {
+		http.Error(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
 	}
 }
+
 func (sc *StockController) HandleGetDistinctSymbolRequest(w http.ResponseWriter, r *http.Request) {
 	// Get all distinct symbols from the service layer
 	symbols, err := sc.stockService.GetDistinctSymbols(r.Context())

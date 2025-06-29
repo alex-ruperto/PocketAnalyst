@@ -251,7 +251,147 @@ class StockDataPipeline:
         Returns:
             Tuple of (successful_data_dict, failed_symbols_list)
         """
+        url = f"{self.api_base_url}/get-multiple"
+        params = {
+            "symbols": ",".join(symbols),
+            "start_date": start_date,
+            "end_date": end_date
+        }
 
+        # Track API call
+        with self._lock:
+            self._stats['api_calls_made'] += 1
 
+        for attempt in range(self.max_retries):
+            try:
+                self.logger.debug(f"Processing batch {symbols[:3]}... (attempt {attempt + 1})")
 
+                response = requests.get(url, params= params, timeout=self.timeout)
+                response.raise_for_status
+
+                # Parse multi-stock JSON response
+                stock_data_dict = response.json()
+
+                # Convert each symbol's data to a DataFrame
+                successful_data = {}
+                failed_symbols = []
+
+                for symbol in symbols:
+                    try:
+                        symbol_data = stock_data_dict.get(symbol, [])
+                        
+                        if not symbol_data:
+                            self.logger.warning(f"No data returned for symbol: {symbol}")
+                            failed_symbols.append(symbol)
+                            continue
+
+                        # Convert to DataFrame and process
+                        df = pd.DataFrame(symbol_data)
+                        df = self._process_dataframe(df)
+
+                        successful_data[symbol] = df
+
+                        # Update statistics
+                        with self._lock:
+                            self._stats['symbols_successful'] += 1
+                            self._stats['total_records_loaded'] += len(df)
+
+                        self.logger.debug(f"Successfully processed {len(df)} recrods for {symbol}")
+                    
+                    except Exception as e:
+                        self.logger.error(f"Failed to process data for {symbol}: {e}")
+                        failed_symbols.append(symbol)
+                        with self._lock:
+                            self._stats['symbols_failed'] += 1
+
+                # Apply rate limiting
+                time.sleep(self.rate_limit_delay)
+
+                return successful_data, failed_symbols
+
+            except requests.exceptions.Timeout as e:
+                self.logger.warning(f"Timeout for batch {symbols[:3]}..., attempt {attempt + 1}")
+                if attempt == self.max_retries - 1:
+                    with self._lock:
+                        self._stats['symbols_failed'] += len(symbols)
+                    return {}, symbols
+            
+            except requests.exceptions.RequestException as e:
+                self.logger.error(f"Request error for batch {symbols[:3]}...: {e}")
+                if attempt == self.max_retries - 1:
+                    with self._lock:
+                        self._stats['symbols_failed'] += len(symbols)
+                    return {}, symbols
+
+            except Exception as e:
+                self.logger.error(f"Unexpected error processing batch {symbols[:3]}...:{e}")
+                if attempt == self.max_retries - 1:
+                    with self._lock:
+                        self._stats['symbols_failed'] += len(symbols)
+                    return {}, symbols
+            
+            # Wait before retrying with exponential backoff
+            if attempt < self.max_retries - 1:
+                wait_time = 2 ** attempt
+                self.logger.warning(f"Retrying batch in {wait_time}s...")
+                time.sleep(wait_time)
+
+        # Safety net, generally should not be reached
+        return {}, symbols
+
+    def _retry_failed_symbols(
+        self,
+        failed_symbols: List[str],
+        start_date: str,
+        end_date: str
+    ) -> Dict[str, pd.DataFrame]:
+        """
+        Retry failed symbols individually using the single-stock endpoint.
+        """
+        retry_data = {}
+
+        for symbol in failed_symbols:
+            try:
+                df = self.get_stock_data(symbol, start_date, end_date)
+                retry_data[symbol] = df
+
+                with self._lock:
+                    self._stats['symbols_successful'] += 1
+                    self._stats['symbols_failed'] -= 1
+                    self._stats['total_records_loaded'] += len(df)
+
+                self.logger.info(f"Successfully retrieved {symbol}")
+            
+            except Exception as e:
+                self.logger.error(f"Final retry failed for {symbol}: {e}")
+
+        return retry_data
+
+    def _process_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Common DataFrame processing logic.
+        """
+        if df.empty:
+            return df
+
+        # Convert date column to datetime
+        df['date'] = pd.to_datetime(df['date'])
+
+        # Sort by date to ensure chronological order
+        df = df.sort_values('date').reset_index(drop=True)
+
+        # Sort by date to ensure chronological order
+        df = df.sort_values('date').reset_index(drop=True)
+
+        # Ensure numeric columns are properly typed
+        numeric_columns = [
+            'open_price', "high_price", "low_price", "close_price",
+            'adjusted_close', 'volume', 'dividend amount', 'split_coefficient'
+        ]
+
+        for col in numeric_columns:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+
+        return df
 

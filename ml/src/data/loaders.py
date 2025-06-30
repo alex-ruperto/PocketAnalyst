@@ -512,3 +512,36 @@ class StockDataPipeline:
         if failed_symbols:
             self.logger.warning(f"Failed symbols: {failed_symbols}")
 
+# Factory functions for different use cases
+def create_training_pipeline() -> StockDataPipeline:
+    """
+    Create a pipeline optimized for ML training data loading.
+    """
+    config = BatchConfig(
+        batch_size=25, # Conservative for training
+        max_workers=2, # Try not to overwhelm the API during training.
+        retry_failed=True,
+        validate_data=True
+    )
+
+    return StockDataPipeline(
+        timeout=120, # Longer timeout for training
+        batch_config = config
+    )
+
+def create_inference_pipeline() -> StockDataPipeline:
+    """
+    Create a pipeline optimized for real-time inference data loading.
+    """
+    config = BatchConfig(
+        batch_size=10, # Smaller batches for faste response
+        max_workers=3, # More concurrent for speed
+        retry_failed=True,
+        validate_data=False # Skip validation for speed
+    )
+
+    return StockDataPipeline(
+        timeout=30, # Shorter timeout for inference
+        rate_limit_delay=0.05, # Faster rate for inference
+        batch_config=config
+    )

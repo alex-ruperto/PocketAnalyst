@@ -175,6 +175,48 @@ class StockDataPipeline:
         all_stock_data = {}
         failed_symbols = []
 
+        with ThreadPoolExecutor(max_workers=self.batch_config.max_workers) as executor:
+            # Submit batch processing tasks
+            future_to_batch = {
+                executor.submit(
+                    self._process_symbol_batch,
+                    batch,
+                    start_date,
+                    end_date,
+                ): batch
+                for batch in symbol_batches
+            }
+            
+            # Collect results as they complete
+            for future in as_completed(future_to_batch):
+                batch = future_to_batch[future]
+                try:
+                    batch_data, batch_failed = future.result()
+                    all_stock_data.update(batch_data)
+                    failed_symbols.extend(batch_failed)
+
+                except Exception as e:
+                    self.logger.error(f"Batch processing failed for symbols {batch}: {e}")
+                    failed_symbols.extend(batch)
+
+        # Retry failed symbols individually if configured
+        if failed_symbols and self.batch_config.retry_failed:
+            self.logger.info(f"Retrying {len(failed_symbols)} failed symbols individually")
+            retry_data = self._retry_failed_symbols(failed_symbols, start_date, end_date)
+            all_stock_data.update(retry_data)
+
+        # Validate and clean data if configured
+        if self.batch_config.validate_data:
+            all_stock_data = self._validate_and_clean_data(all_stock_data)
+
+        # Log final statistics
+        self._log_batch_statistics(failed_symbols)
+
+        # Return in requested format
+        if return_combined:
+            return self._combine_stock_dataframes(all_stock_data)
+        else:
+            return all_stock_data
 
     def get_distinct_symbols(self) -> List[str]:
         """
@@ -279,7 +321,7 @@ class StockDataPipeline:
                 for symbol in symbols:
                     try:
                         symbol_data = stock_data_dict.get(symbol, [])
-                        
+
                         if not symbol_data:
                             self.logger.warning(f"No data returned for symbol: {symbol}")
                             failed_symbols.append(symbol)
@@ -297,7 +339,7 @@ class StockDataPipeline:
                             self._stats['total_records_loaded'] += len(df)
 
                         self.logger.debug(f"Successfully processed {len(df)} recrods for {symbol}")
-                    
+
                     except Exception as e:
                         self.logger.error(f"Failed to process data for {symbol}: {e}")
                         failed_symbols.append(symbol)
@@ -315,7 +357,7 @@ class StockDataPipeline:
                     with self._lock:
                         self._stats['symbols_failed'] += len(symbols)
                     return {}, symbols
-            
+
             except requests.exceptions.RequestException as e:
                 self.logger.error(f"Request error for batch {symbols[:3]}...: {e}")
                 if attempt == self.max_retries - 1:
@@ -329,7 +371,7 @@ class StockDataPipeline:
                     with self._lock:
                         self._stats['symbols_failed'] += len(symbols)
                     return {}, symbols
-            
+
             # Wait before retrying with exponential backoff
             if attempt < self.max_retries - 1:
                 wait_time = 2 ** attempt
@@ -361,7 +403,7 @@ class StockDataPipeline:
                     self._stats['total_records_loaded'] += len(df)
 
                 self.logger.info(f"Successfully retrieved {symbol}")
-            
+
             except Exception as e:
                 self.logger.error(f"Final retry failed for {symbol}: {e}")
 
@@ -394,4 +436,79 @@ class StockDataPipeline:
                 df[col] = pd.to_numeric(df[col], errors='coerce')
 
         return df
+
+    def _validate_and_clean_data(self, stock_data: Dict[str,pd.DataFrame]) -> Dict[str, pd.DataFrame]:
+        """
+        Validate data quality and remove problematic records.
+        """
+
+        cleaned_data = {}
+
+        for symbol, df in stock_data.items():
+            if df.empty:
+                self.logger.warning(f"Empty dataframe for {symbol}")
+                continue
+
+            # Check for required columns
+            required_cols = ['date', 'open_price', 'high_price', 'low_price', 'close_price', 'volume']
+            missing_cols = [col for col in required_cols if col not in df.columns]
+
+            if missing_cols:
+                self.logger.error(f"Missing rqeuired columns for {symbol}: {missing_cols}")
+                continue
+
+            # Remove rows with invalid price data
+            initial_count = len(df)
+            df = df.dropna(subset=['open_price', 'high_price', 'low_price', 'close_price'])
+            df = df[df['volume'] >= 0] # Volume should not be negative
+
+            # Price Validation
+            df = df[(df['high_price'] >= df['low_price']) & (df['open_price'] > 0 ) & (df['close_price'] > 0)]
+
+            cleaned_count = len(df)
+            if cleaned_count != initial_count:
+                self.logger.info(f"Cleaned {symbol}: {initial_count} -> {cleaned_count} records")
+
+            if cleaned_count > 0:
+                cleaned_data[symbol] = df
+            else:
+                self.logger.warning(f"All data filtered out for {symbol}")
+
+        return cleaned_data
+    
+    def _combine_stock_dataframes(self, stock_data: Dict[str, pd.DataFrame]) -> pd.DataFrame:
+        """
+        Combine multiple stock DataFrames into a single DataFrame.
+        """
+        if not stock_data:
+            return pd.DataFrame()
+
+        # Concatenate all DataFrames
+        combined_df = pd.concat(stock_data.values(), ignore_index=True)
+
+        self.logger.info(f"Combined data: {len(combined_df)} total records for {len(stock_data)} symbols")
+
+        return combined_df
+
+    def _log_batch_statistics(self, failed_symbols :List[str]):
+        """
+        Log comprehensive statistics about the batch operation.
+        """
+        stats = self._stats.copy()
+
+        success_rate = (stats['symbols_successful'] / stats['symbols_requested']) * 100
+
+        self.logger.info(f"""
+        Batch Processing Complete:
+        ========================
+        Symbols Requested: {stats['symbol_requested']}
+        Symbols Successful: {stats['symbols_successful']}
+        Symbols Failed: {stats['symbols_failed']}
+        Success Rate: {success_rate:..1f}%
+        API Calls Made: {stats['api_calls_made']}
+        Total Records Loaded: {stats['total_records_loaded']}
+        """)
+
+        if failed_symbols:
+            self.logger.warning(f"Failed symbols: {failed_symbols}")
 

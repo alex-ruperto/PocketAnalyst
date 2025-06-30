@@ -31,7 +31,7 @@ class TestTechnicalIndicators:
         """
         Test the add technical indicators function
         """
-        response = requests.get(f"{api_base_url}/get?symbol=AAPL&start_date=2006-01-02&end_date=2025-01-02", 
+        response = requests.get(f"{api_base_url}/get-stock?symbol=AAPL&start_date=2006-01-02&end_date=2025-01-02", 
                                 timeout=5)
 
         if response.status_code == 200:

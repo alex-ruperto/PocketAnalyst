@@ -163,3 +163,33 @@ class TechnicalDataPreprocessor:
         Returns:
             Dictionary of DataFrames with targets added
         """
+        training_data = {}
+
+        for symbol, df in feature_data.items():
+            try:
+                target_df = df.copy()
+                # Crete targets for prediction horizon
+                for horizon in prediction_horizons:
+                    """
+                    Calculate the percentage return 'horizon' days in the future.
+                    """
+                    target_df[f"target_return_{horizon}d"] = (
+                        target_df["close_price"].shift(-horizon)
+                        / target_df["close_price"]
+                        - 1
+                    )
+
+                    # Binary direction target (up/down)
+                    target_df[f"target_direction_{horizon}d"] = (
+                        target_df[f"target_return_{horizon}d"]
+                    ).astype(int)
+
+                    # Categorical return buckets for classification
+                    target_df[f"target_bucket_{horizon}d"] = pd.cut(
+                        target_df[f"target_return_{horizon}d"],
+                        bins=[-float("inf"), -0.05, -0.02, 0.02, 0.05, float("inf")],
+                        labels=["strong_down", "down", "flat", "up", "strong_up"],
+                    )
+
+            except Exception as e:
+                self.logger.warning(f"Failed to create targets for {symbol}: {e}")

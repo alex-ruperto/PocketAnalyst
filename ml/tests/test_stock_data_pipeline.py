@@ -2,7 +2,7 @@ import pytest
 import requests
 import logging
 import pandas as pd
-from pocketanalyst_ml.data.loaders import (
+from pocketanalyst_ml.data.pipelines import (
     StockDataPipeline,
     BatchConfig,
     StockDataError,
@@ -11,6 +11,7 @@ from pocketanalyst_ml.data.loaders import (
 )
 
 logger = logging.getLogger(__name__)
+
 
 class TestStockDataLoaders:
     """
@@ -32,7 +33,7 @@ class TestStockDataLoaders:
         """
         Common test symbols
         """
-        return ['AAPL', 'NVDA', 'MSFT']
+        return ["AAPL", "NVDA", "MSFT"]
 
     @pytest.mark.integration
     def test_api_connection(self, api_base_url):
@@ -56,16 +57,19 @@ class TestStockDataLoaders:
 
             assert isinstance(symbols, list), "Symbols should be returned as a list"
             assert len(symbols) > 0, "Should have at least some symbols available"
-            
+
             # Check that symbols look reasonable
             for symbol in symbols[:5]:  # Check first few
-                assert isinstance(symbol, str), f"Symbol should be string, got {type(symbol)}"
+                assert isinstance(symbol, str), (
+                    f"Symbol should be string, got {type(symbol)}"
+                )
                 assert len(symbol) <= 5, f"Symbol {symbol} seems too long"
-                assert symbol.replace('.', '').isalnum(), f"Symbol {symbol} contains invalid characters"
-            
+                assert symbol.replace(".", "").isalnum(), (
+                    f"Symbol {symbol} contains invalid characters"
+                )
+
             logger.info(f"✓ Successfully fetched {len(symbols)} symbols")
             logger.info(f"Symbols: {symbols}")
-            
+
         except StockDataError as e:
             pytest.fail(f"Failed to fetch symbols: {e}")
-

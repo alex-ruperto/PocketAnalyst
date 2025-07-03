@@ -7,7 +7,7 @@ import logging
 import pandas as pd
 from datetime import datetime, timedelta
 from typing import List, Dict
-from pocketanalyst_ml.data.loaders import create_training_pipeline, StockDataError
+from pocketanalyst_ml.data.pipelines import create_training_pipeline, StockDataError
 from pocketanalyst_ml.features import add_technical_indicators
 
 
@@ -191,5 +191,51 @@ class TechnicalDataPreprocessor:
                         labels=["strong_down", "down", "flat", "up", "strong_up"],
                     )
 
+                # Remove rows where we can't calculate targets (end of dataset)
+                max_horizon = max(prediction_horizons)
+                target_df = target_df.iloc[
+                    :-max_horizon
+                ]  # Remove last max_horizon rows
+
+                # Only keep if we have enough data for training
+                if len(target_df) > 100:
+                    training_data[symbol] = target_df
+                    self.logger.debug(
+                        f"Created targets for {symbol}: {len(target_df)} training samples"
+                    )
+                else:
+                    self.logger.warning(f"Insufficient data for targets in {symbol}")
+
             except Exception as e:
                 self.logger.warning(f"Failed to create targets for {symbol}: {e}")
+                continue
+
+        self.logger.info(
+            f"Successfully created training targets for {len(training_data)} symbols"
+        )
+        return training_data
+
+    def get_combined_training_dataset(
+        self,
+        symbols: List[str] = None,
+        prediction_horizons: List[int] = [1, 3, 7, 30, 90],
+        sample_limit: int = None,
+    ) -> pd.DataFrame:
+        """
+        Get combined training dataset with all symbols for model training
+
+        Args:
+            symbols: Specific symbols to include
+            prediction_horizons: Prediction horizons to create targets for (e.g., 1d, 3d, 7d, 30d, 90d)
+            sample_limit: Maximum number of samples per symbol (for balancing)
+
+        Returns:
+            Combined DataFrame ready for ML training
+        """
+        # Load and prepare data
+        stock_data = self.load_training_data(symbols)
+        feature_data = self.prepare_features(stock_data)
+        training_data = self.create_training_targets(feature_data, prediction_horizons)
+
+        if not training_data:
+            raise StockDataError("No training data available after processing")

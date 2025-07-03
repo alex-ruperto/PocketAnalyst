@@ -11,14 +11,14 @@ from pocketanalyst_ml.data.pipelines import create_training_pipeline, StockDataE
 from pocketanalyst_ml.features import add_technical_indicators
 
 
-class TechnicalDataPreprocessor:
+class MLTrainingPreprocessor:
     """
     Complete ML training data pipeline that efficiently loads multiple stocks and prepares them for model training.
     """
 
     def __init__(self, lookback_days: int = 365 * 2):
         """
-        Initialize TechnicalDataPreprocessor.
+        Initialize MLTrainingPreprocessor.
 
         Args:
             lookback_days: Number of days of historical data for training

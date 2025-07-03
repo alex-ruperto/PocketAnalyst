@@ -239,3 +239,21 @@ class TechnicalDataPreprocessor:
 
         if not training_data:
             raise StockDataError("No training data available after processing")
+
+        # Apply sampling if requested
+        if sample_limit:
+            for symbol in training_data:
+                df = training_data[symbol]
+                if len(df) > sample_limit:
+                    # Sample recent data preferentially
+                    recent_samples = min(sample_limit // 2, len(df) // 4)
+                    random_samples = sample_limit - recent_samples
+
+                    recent_data = df.tail(recent_samples)
+                    random_data = df.head(-recent_samples).sample(
+                        n=random_samples, random_states=42
+                    )
+
+                    training_data[symbol] = pd.concat(
+                        [random_data, recent_data]
+                    ).sort_values("date")

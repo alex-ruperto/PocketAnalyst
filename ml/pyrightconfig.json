@@ -1,6 +1,6 @@
 {
-  "pythonPath": "/Users/alex/.pyenv/versions/pocketanalyst-ml/bin/python",
-  "venvPath": "/Users/alex/.pyenv/versions",
-  "venv": "pocketanalyst-ml",
+  "pythonPath": ".venv/bin/python",
+  "venvPath": ".",
+  "venv": ".venv",
   "pythonVersion": "3.11"
 }

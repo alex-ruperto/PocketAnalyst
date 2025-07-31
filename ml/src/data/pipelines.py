@@ -71,7 +71,7 @@ class StockDataPipeline:
         Raises:
             StockDataError: If data retrieval fails after all retries
         """
-        url = f"{self.api_base_url}/get"
+        url = f"{self.api_base_url}/get-stock"
         params = {
             "symbol": symbol,
             "start_date": start_date,
@@ -422,9 +422,6 @@ class StockDataPipeline:
         # Sort by date to ensure chronological order
         df = df.sort_values('date').reset_index(drop=True)
 
-        # Sort by date to ensure chronological order
-        df = df.sort_values('date').reset_index(drop=True)
-
         # Ensure numeric columns are properly typed
         numeric_columns = [
             'open_price', "high_price", "low_price", "close_price",
@@ -485,6 +482,8 @@ class StockDataPipeline:
 
         # Concatenate all DataFrames
         combined_df = pd.concat(stock_data.values(), ignore_index=True)
+        # Sort by symbol and date for consistency
+        combined_df = combined_df.sort_values(['symbol', 'date']).reset_index(drop=True)
 
         self.logger.info(f"Combined data: {len(combined_df)} total records for {len(stock_data)} symbols")
 
